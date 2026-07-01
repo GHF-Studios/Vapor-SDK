@@ -32,4 +32,7 @@ pub use toolchain::{
     toolchain_install, toolchain_install_plan, toolchain_status,
 };
 pub use vapor_core::ChildContentRef;
-pub use workspace::{WorkspaceCheckError, WorkspaceCheckReport, WorkspaceCommand, workspace_check};
+pub use workspace::{
+    WorkspaceCargoReport, WorkspaceCommand, WorkspaceCommandError, WorkspaceDeployReport,
+    workspace_build, workspace_check, workspace_deploy, workspace_fmt,
+};

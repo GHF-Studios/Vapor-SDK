@@ -2,7 +2,8 @@
 
 use vapor_sdk_core::{
     CommandSpec, GlobalOptions, SdkCommand, ToolchainCommand, ToolchainInstallState,
-    WorkspaceCommand, toolchain_install, toolchain_status, workspace_check,
+    WorkspaceCargoReport, WorkspaceCommand, WorkspaceDeployReport, toolchain_install,
+    toolchain_status, workspace_build, workspace_check, workspace_deploy, workspace_fmt,
 };
 
 pub(crate) fn print_command(
@@ -12,7 +13,18 @@ pub(crate) fn print_command(
     let spec = vapor_sdk_core::describe_command(command);
 
     match command {
-        SdkCommand::Workspace(WorkspaceCommand::Check) => print_workspace_check(globals, spec),
+        SdkCommand::Workspace(WorkspaceCommand::Check) => {
+            print_workspace_cargo(globals, spec, workspace_check()?)
+        }
+        SdkCommand::Workspace(WorkspaceCommand::Fmt) => {
+            print_workspace_cargo(globals, spec, workspace_fmt()?)
+        }
+        SdkCommand::Workspace(WorkspaceCommand::Build) => {
+            print_workspace_cargo(globals, spec, workspace_build()?)
+        }
+        SdkCommand::Workspace(WorkspaceCommand::Deploy) => {
+            print_workspace_deploy(globals, spec, workspace_deploy()?)
+        }
         SdkCommand::Toolchain(ToolchainCommand::Status) => print_toolchain_status(globals, spec),
         SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install(globals, spec),
         _ => {
@@ -22,29 +34,63 @@ pub(crate) fn print_command(
     }
 }
 
-fn print_workspace_check(
+fn print_workspace_cargo(
     globals: GlobalOptions,
     spec: CommandSpec,
+    report: WorkspaceCargoReport,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let report = workspace_check()?;
-
     println!("{}", spec.summary);
-    println!("working_directory: {}", report.working_directory.display());
-    println!("cargo: {}", report.cargo_path.display());
-    println!("rustc: {}", report.rustc_path.display());
-    println!("status: {}", report.status);
+    print_workspace_cargo_report(&report);
 
     if globals.verbose {
-        println!("state_surface: {:?}", spec.surface);
-        print_lines("preconditions", spec.preconditions);
-        print_lines("future_effects", spec.future_effects);
+        print_workspace_spec(&spec);
     }
 
     if report.status.success() {
         Ok(())
     } else {
-        Err(format!("Vapor-managed cargo check failed with {}", report.status).into())
+        Err(format!("{} failed with {}", spec.action, report.status).into())
     }
+}
+
+fn print_workspace_deploy(
+    globals: GlobalOptions,
+    spec: CommandSpec,
+    report: WorkspaceDeployReport,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", spec.summary);
+    print_workspace_cargo_report(&report.build);
+    println!("source_executable: {}", report.source_executable.display());
+    println!(
+        "deployed_executable: {}",
+        report.deployed_executable.display()
+    );
+
+    if globals.verbose {
+        print_workspace_spec(&spec);
+    }
+
+    if report.build.status.success() {
+        Ok(())
+    } else {
+        Err(format!("{} failed with {}", spec.action, report.build.status).into())
+    }
+}
+
+fn print_workspace_cargo_report(report: &WorkspaceCargoReport) {
+    println!("working_directory: {}", report.working_directory.display());
+    println!("cargo: {}", report.cargo_path.display());
+    println!("rustc: {}", report.rustc_path.display());
+    println!("cargo_home: {}", report.cargo_home.display());
+    println!("target_dir: {}", report.target_dir.display());
+    println!("cargo_args: {}", report.cargo_args.join(" "));
+    println!("status: {}", report.status);
+}
+
+fn print_workspace_spec(spec: &CommandSpec) {
+    println!("state_surface: {:?}", spec.surface);
+    print_lines("preconditions", spec.preconditions);
+    print_lines("future_effects", spec.future_effects);
 }
 
 fn print_stub(globals: GlobalOptions, spec: CommandSpec) {

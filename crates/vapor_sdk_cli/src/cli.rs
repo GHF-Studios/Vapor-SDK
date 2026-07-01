@@ -61,6 +61,12 @@ enum Command {
     Status,
     /// Run `cargo check` through the Vapor-managed Cargo binary.
     Check,
+    /// Run `cargo fmt` through the Vapor-managed Cargo binary.
+    Fmt,
+    /// Run `cargo build --workspace` through the Vapor-managed Cargo binary.
+    Build,
+    /// Build and promote the SDK CLI into the executable-root `bin` directory.
+    Deploy,
     Repair {
         #[command(subcommand)]
         command: RepairCommand,
@@ -120,6 +126,9 @@ impl Command {
             Self::Version => core::SdkCommand::Version,
             Self::Status => core::SdkCommand::Status,
             Self::Check => core::SdkCommand::Workspace(core::WorkspaceCommand::Check),
+            Self::Fmt => core::SdkCommand::Workspace(core::WorkspaceCommand::Fmt),
+            Self::Build => core::SdkCommand::Workspace(core::WorkspaceCommand::Build),
+            Self::Deploy => core::SdkCommand::Workspace(core::WorkspaceCommand::Deploy),
             Self::Repair { command } => core::SdkCommand::Repair(command.into_core()),
             Self::Toolchain { command } => core::SdkCommand::Toolchain(command.into_core()),
             Self::Template { command } => core::SdkCommand::Template(command.into_core()),
