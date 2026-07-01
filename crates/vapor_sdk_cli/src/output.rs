@@ -1,8 +1,8 @@
 //! Output for parsed SDK commands.
 
 use vapor_sdk_core::{
-    toolchain_install, toolchain_status, CommandSpec, GlobalOptions, SdkCommand,
-    ToolchainCommand, ToolchainInstallState,
+    CommandSpec, GlobalOptions, SdkCommand, ToolchainCommand, ToolchainInstallState,
+    WorkspaceCommand, toolchain_install, toolchain_status, workspace_check,
 };
 
 pub(crate) fn print_command(
@@ -12,12 +12,38 @@ pub(crate) fn print_command(
     let spec = vapor_sdk_core::describe_command(command);
 
     match command {
+        SdkCommand::Workspace(WorkspaceCommand::Check) => print_workspace_check(globals, spec),
         SdkCommand::Toolchain(ToolchainCommand::Status) => print_toolchain_status(globals, spec),
         SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install(globals, spec),
         _ => {
             print_stub(globals, spec);
             Ok(())
         }
+    }
+}
+
+fn print_workspace_check(
+    globals: GlobalOptions,
+    spec: CommandSpec,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let report = workspace_check()?;
+
+    println!("{}", spec.summary);
+    println!("working_directory: {}", report.working_directory.display());
+    println!("cargo: {}", report.cargo_path.display());
+    println!("rustc: {}", report.rustc_path.display());
+    println!("status: {}", report.status);
+
+    if globals.verbose {
+        println!("state_surface: {:?}", spec.surface);
+        print_lines("preconditions", spec.preconditions);
+        print_lines("future_effects", spec.future_effects);
+    }
+
+    if report.status.success() {
+        Ok(())
+    } else {
+        Err(format!("Vapor-managed cargo check failed with {}", report.status).into())
     }
 }
 
@@ -74,7 +100,10 @@ fn print_toolchain_status(
         }
         println!("channel: {}", status.toolchain.channel);
         println!("date: {}", status.toolchain.date);
-        println!("{}: override with a portable/dev Vapor root", vapor_sdk_core::VAPOR_HOME_ENV);
+        println!(
+            "{}: override with a portable/dev Vapor root",
+            vapor_sdk_core::VAPOR_HOME_ENV
+        );
     }
 
     Ok(())

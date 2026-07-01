@@ -4,6 +4,7 @@ use crate::content::{ContentSource, ContentType};
 use crate::repair::RepairCommand;
 use crate::template::TemplateCommand;
 use crate::toolchain::ToolchainCommand;
+use crate::workspace::WorkspaceCommand;
 use vapor_core::ChildContentRef;
 
 /// Read-only commands shared by every SDK content kind.
@@ -29,10 +30,22 @@ pub enum SourceAuthoringCommand {
 /// Composition mutations for authored packs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PackCompositionCommand {
-    Add { pack_id: String, child: ChildContentRef },
-    Remove { pack_id: String, child: ChildContentRef },
-    Select { pack_id: String, child: ChildContentRef },
-    Unselect { pack_id: String, child: ChildContentRef },
+    Add {
+        pack_id: String,
+        child: ChildContentRef,
+    },
+    Remove {
+        pack_id: String,
+        child: ChildContentRef,
+    },
+    Select {
+        pack_id: String,
+        child: ChildContentRef,
+    },
+    Unselect {
+        pack_id: String,
+        child: ChildContentRef,
+    },
 }
 
 /// Packagepack authoring commands.
@@ -42,7 +55,9 @@ pub enum PackagepackCommand {
     Author(SourceAuthoringCommand),
     Compose(PackCompositionCommand),
     /// Write a persistent packagepack lock artifact from the resolved graph.
-    Lock { packagepack_id: String },
+    Lock {
+        packagepack_id: String,
+    },
 }
 
 /// Commands shared by authored non-root pack types.
@@ -65,10 +80,17 @@ pub enum LeafCommand {
 pub enum SdkCommand {
     Version,
     Status,
+    Workspace(WorkspaceCommand),
     Repair(RepairCommand),
     Toolchain(ToolchainCommand),
     Template(TemplateCommand),
     Packagepack(PackagepackCommand),
-    Pack { pack_type: ContentType, command: PackCommand },
-    Leaf { content_type: ContentType, command: LeafCommand },
+    Pack {
+        pack_type: ContentType,
+        command: PackCommand,
+    },
+    Leaf {
+        content_type: ContentType,
+        command: LeafCommand,
+    },
 }

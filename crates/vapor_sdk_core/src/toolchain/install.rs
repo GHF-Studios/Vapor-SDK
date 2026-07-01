@@ -9,8 +9,10 @@ use std::process::Command;
 
 use sha2::{Digest, Sha256};
 
-use super::plan::{toolchain_install_plan, ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError};
 use super::BOOTSTRAP_STAGING_DIR;
+use super::plan::{
+    ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError, toolchain_install_plan,
+};
 
 /// Result of installing the canonical Vapor toolchain.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,7 +40,12 @@ pub fn toolchain_install() -> Result<ToolchainInstallReport, ToolchainInstallErr
         .status
         .bootstrap_root
         .join(BOOTSTRAP_STAGING_DIR)
-        .join(format!("{}-{}-{}", plan.status.toolchain.identifier(), plan.status.host_triple, std::process::id()));
+        .join(format!(
+            "{}-{}-{}",
+            plan.status.toolchain.identifier(),
+            plan.status.host_triple,
+            std::process::id()
+        ));
 
     if staging_root.exists() {
         return Err(ToolchainInstallError::StagingAlreadyExists(staging_root));
@@ -61,7 +68,11 @@ pub fn toolchain_install() -> Result<ToolchainInstallReport, ToolchainInstallErr
     fs::rename(&staged_active_root, &installed_root)?;
     let _ = fs::remove_dir_all(&staging_root);
 
-    Ok(ToolchainInstallReport { plan, staging_root, installed_root })
+    Ok(ToolchainInstallReport {
+        plan,
+        staging_root,
+        installed_root,
+    })
 }
 
 fn download_archive(archive: &ToolchainArchivePlan) -> Result<(), ToolchainInstallError> {
@@ -101,7 +112,11 @@ fn verify_path_hash(path: &Path, expected: &str) -> Result<(), ToolchainInstallE
     if actual == expected {
         Ok(())
     } else {
-        Err(ToolchainInstallError::HashMismatch { path: path.to_path_buf(), expected: expected.to_owned(), actual })
+        Err(ToolchainInstallError::HashMismatch {
+            path: path.to_path_buf(),
+            expected: expected.to_owned(),
+            actual,
+        })
     }
 }
 
@@ -171,7 +186,10 @@ fn install_component(component_root: &Path, prefix: &Path) -> Result<(), Toolcha
     if status.success() {
         Ok(())
     } else {
-        Err(ToolchainInstallError::InstallScriptFailed { script: install_script, status })
+        Err(ToolchainInstallError::InstallScriptFailed {
+            script: install_script,
+            status,
+        })
     }
 }
 
@@ -202,10 +220,17 @@ pub enum ToolchainInstallError {
     UnsupportedInstallerHost,
     AlreadyInstalled(PathBuf),
     StagingAlreadyExists(PathBuf),
-    HashMismatch { path: PathBuf, expected: String, actual: String },
+    HashMismatch {
+        path: PathBuf,
+        expected: String,
+        actual: String,
+    },
     InvalidArchivePath(PathBuf),
     MissingInstallScript(PathBuf),
-    InstallScriptFailed { script: PathBuf, status: std::process::ExitStatus },
+    InstallScriptFailed {
+        script: PathBuf,
+        status: std::process::ExitStatus,
+    },
     MissingInstalledBinary(PathBuf),
 }
 
@@ -233,14 +258,49 @@ impl fmt::Display for ToolchainInstallError {
             Self::Plan(error) => write!(formatter, "{error}"),
             Self::Network(error) => write!(formatter, "failed to download Rust archive: {error}"),
             Self::Io(error) => write!(formatter, "toolchain install I/O failed: {error}"),
-            Self::UnsupportedInstallerHost => write!(formatter, "toolchain install currently requires a Unix host installer path"),
-            Self::AlreadyInstalled(path) => write!(formatter, "toolchain is already installed at `{}`", path.display()),
-            Self::StagingAlreadyExists(path) => write!(formatter, "toolchain staging directory already exists at `{}`", path.display()),
-            Self::HashMismatch { path, expected, actual } => write!(formatter, "SHA-256 mismatch for `{}`: expected {expected}, got {actual}", path.display()),
-            Self::InvalidArchivePath(path) => write!(formatter, "Rust archive path is not a `.tar.xz` file: `{}`", path.display()),
-            Self::MissingInstallScript(path) => write!(formatter, "Rust archive is missing installer script `{}`", path.display()),
-            Self::InstallScriptFailed { script, status } => write!(formatter, "Rust component installer `{}` failed with {status}", script.display()),
-            Self::MissingInstalledBinary(path) => write!(formatter, "installed toolchain is missing `{}`", path.display()),
+            Self::UnsupportedInstallerHost => write!(
+                formatter,
+                "toolchain install currently requires a Unix host installer path"
+            ),
+            Self::AlreadyInstalled(path) => write!(
+                formatter,
+                "toolchain is already installed at `{}`",
+                path.display()
+            ),
+            Self::StagingAlreadyExists(path) => write!(
+                formatter,
+                "toolchain staging directory already exists at `{}`",
+                path.display()
+            ),
+            Self::HashMismatch {
+                path,
+                expected,
+                actual,
+            } => write!(
+                formatter,
+                "SHA-256 mismatch for `{}`: expected {expected}, got {actual}",
+                path.display()
+            ),
+            Self::InvalidArchivePath(path) => write!(
+                formatter,
+                "Rust archive path is not a `.tar.xz` file: `{}`",
+                path.display()
+            ),
+            Self::MissingInstallScript(path) => write!(
+                formatter,
+                "Rust archive is missing installer script `{}`",
+                path.display()
+            ),
+            Self::InstallScriptFailed { script, status } => write!(
+                formatter,
+                "Rust component installer `{}` failed with {status}",
+                script.display()
+            ),
+            Self::MissingInstalledBinary(path) => write!(
+                formatter,
+                "installed toolchain is missing `{}`",
+                path.display()
+            ),
         }
     }
 }

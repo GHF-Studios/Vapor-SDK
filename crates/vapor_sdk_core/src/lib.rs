@@ -13,21 +13,23 @@ pub mod repair;
 pub mod spec;
 pub mod template;
 pub mod toolchain;
+pub mod workspace;
 
 pub use commands::{
-    ContentReadCommand, LeafCommand, PackagepackCommand, PackCommand, PackCompositionCommand,
+    ContentReadCommand, LeafCommand, PackCommand, PackCompositionCommand, PackagepackCommand,
     SdkCommand, SourceAuthoringCommand,
 };
-pub use content::{allowed_pack_children, ContentSource, ContentType};
+pub use content::{ContentSource, ContentType, allowed_pack_children};
 pub use options::GlobalOptions;
 pub use repair::{RepairCommand, RepairTarget};
-pub use spec::{describe_command, CommandSpec, StateSurface};
+pub use spec::{CommandSpec, StateSurface, describe_command};
 pub use template::TemplateCommand;
 pub use toolchain::{
-    toolchain_install, toolchain_install_plan, toolchain_status, DistError, ToolchainArchivePlan,
-    ToolchainCommand, ToolchainInstallError, ToolchainInstallPlan, ToolchainInstallReport,
-    ToolchainInstallState, ToolchainPlanError, ToolchainStatus, ToolchainStatusError,
-    VaporHomeSource, ACTIVE_TOOLCHAIN_DIR, BOOTSTRAP_DOWNLOADS_DIR, BOOTSTRAP_STAGING_DIR,
-    DEPLOY_DIR, TOOLCHAIN_BOOTSTRAP_DIR, TOOLCHAIN_DIR, VAPOR_HOME_ENV,
+    ACTIVE_TOOLCHAIN_DIR, BOOTSTRAP_DOWNLOADS_DIR, BOOTSTRAP_STAGING_DIR, DEPLOY_DIR, DistError,
+    TOOLCHAIN_BOOTSTRAP_DIR, TOOLCHAIN_DIR, ToolchainArchivePlan, ToolchainCommand,
+    ToolchainInstallError, ToolchainInstallPlan, ToolchainInstallReport, ToolchainInstallState,
+    ToolchainPlanError, ToolchainStatus, ToolchainStatusError, VAPOR_HOME_ENV, VaporHomeSource,
+    toolchain_install, toolchain_install_plan, toolchain_status,
 };
 pub use vapor_core::ChildContentRef;
+pub use workspace::{WorkspaceCheckError, WorkspaceCheckReport, WorkspaceCommand, workspace_check};

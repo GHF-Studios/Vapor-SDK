@@ -14,8 +14,12 @@ impl RepairCommand {
     pub(super) fn into_core(self) -> core::RepairCommand {
         match self {
             Self::Status => core::RepairCommand::Status,
-            Self::Plan { target } => core::RepairCommand::Plan { target: target.into() },
-            Self::Apply { target } => core::RepairCommand::Apply { target: target.into() },
+            Self::Plan { target } => core::RepairCommand::Plan {
+                target: target.into(),
+            },
+            Self::Apply { target } => core::RepairCommand::Apply {
+                target: target.into(),
+            },
         }
     }
 }

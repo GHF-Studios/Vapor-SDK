@@ -21,16 +21,28 @@ pub(super) enum LeafCommand {
 impl LeafCommand {
     pub(super) fn into_core(self) -> core::LeafCommand {
         match self {
-            Self::List { source } => read(core::ContentReadCommand::List { source: source.into() }),
+            Self::List { source } => read(core::ContentReadCommand::List {
+                source: source.into(),
+            }),
             Self::Status { content_id } => read(core::ContentReadCommand::Status { content_id }),
-            Self::Fingerprint { content_id } => read(core::ContentReadCommand::Fingerprint { content_id }),
+            Self::Fingerprint { content_id } => {
+                read(core::ContentReadCommand::Fingerprint { content_id })
+            }
             Self::Inspect { content_id } => read(core::ContentReadCommand::Inspect { content_id }),
-            Self::Validate { content_id } => read(core::ContentReadCommand::Validate { content_id }),
+            Self::Validate { content_id } => {
+                read(core::ContentReadCommand::Validate { content_id })
+            }
             Self::New { content_id } => author(core::SourceAuthoringCommand::New { content_id }),
             Self::Init { content_id } => author(core::SourceAuthoringCommand::Init { content_id }),
-            Self::Build { content_id } => author(core::SourceAuthoringCommand::Build { content_id }),
-            Self::Package { content_id } => author(core::SourceAuthoringCommand::Package { content_id }),
-            Self::Publish { content_id } => author(core::SourceAuthoringCommand::Publish { content_id }),
+            Self::Build { content_id } => {
+                author(core::SourceAuthoringCommand::Build { content_id })
+            }
+            Self::Package { content_id } => {
+                author(core::SourceAuthoringCommand::Package { content_id })
+            }
+            Self::Publish { content_id } => {
+                author(core::SourceAuthoringCommand::Publish { content_id })
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 //! SDK toolchain command specifications.
 
-use super::{spec, CommandSpec, StateSurface};
+use super::{CommandSpec, StateSurface, spec};
 use crate::toolchain::ToolchainCommand;
 
 pub(super) fn describe(command: &ToolchainCommand) -> CommandSpec {
@@ -17,7 +17,11 @@ pub(super) fn describe(command: &ToolchainCommand) -> CommandSpec {
             "Install the pinned Rust/Cargo toolchain.",
             StateSurface::Toolchain,
             &["toolchain pin is known"],
-            &["download official Rust archives", "verify archive hashes", "promote staged toolchain"],
+            &[
+                "download official Rust archives",
+                "verify archive hashes",
+                "promote staged toolchain",
+            ],
         ),
         ToolchainCommand::Repair => spec(
             "sdk toolchain repair",

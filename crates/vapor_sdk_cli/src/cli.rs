@@ -2,16 +2,16 @@
 
 mod args;
 mod leaf;
-mod packagepack;
 mod pack;
+mod packagepack;
 mod repair;
 mod template;
 mod toolchain;
 
 use clap::{Parser, Subcommand};
 use leaf::LeafCommand;
-use packagepack::PackagepackCommand;
 use pack::PackCommand;
+use packagepack::PackagepackCommand;
 use repair::RepairCommand;
 use template::TemplateCommand;
 use toolchain::ToolchainCommand;
@@ -59,21 +59,59 @@ impl Cli {
 enum Command {
     Version,
     Status,
-    Repair { #[command(subcommand)] command: RepairCommand },
-    Toolchain { #[command(subcommand)] command: ToolchainCommand },
-    Template { #[command(subcommand)] command: TemplateCommand },
-    Packagepack { #[command(subcommand)] command: PackagepackCommand },
-    Enginepack { #[command(subcommand)] command: PackCommand },
-    Gamepack { #[command(subcommand)] command: PackCommand },
-    Modpack { #[command(subcommand)] command: PackCommand },
-    Engine { #[command(subcommand)] command: LeafCommand },
-    Game { #[command(subcommand)] command: LeafCommand },
+    /// Run `cargo check` through the Vapor-managed Cargo binary.
+    Check,
+    Repair {
+        #[command(subcommand)]
+        command: RepairCommand,
+    },
+    Toolchain {
+        #[command(subcommand)]
+        command: ToolchainCommand,
+    },
+    Template {
+        #[command(subcommand)]
+        command: TemplateCommand,
+    },
+    Packagepack {
+        #[command(subcommand)]
+        command: PackagepackCommand,
+    },
+    Enginepack {
+        #[command(subcommand)]
+        command: PackCommand,
+    },
+    Gamepack {
+        #[command(subcommand)]
+        command: PackCommand,
+    },
+    Modpack {
+        #[command(subcommand)]
+        command: PackCommand,
+    },
+    Engine {
+        #[command(subcommand)]
+        command: LeafCommand,
+    },
+    Game {
+        #[command(subcommand)]
+        command: LeafCommand,
+    },
     #[command(name = "engine_mod")]
-    EngineMod { #[command(subcommand)] command: LeafCommand },
+    EngineMod {
+        #[command(subcommand)]
+        command: LeafCommand,
+    },
     #[command(name = "game_mod")]
-    GameMod { #[command(subcommand)] command: LeafCommand },
+    GameMod {
+        #[command(subcommand)]
+        command: LeafCommand,
+    },
     #[command(name = "extension_mod")]
-    ExtensionMod { #[command(subcommand)] command: LeafCommand },
+    ExtensionMod {
+        #[command(subcommand)]
+        command: LeafCommand,
+    },
 }
 
 impl Command {
@@ -81,6 +119,7 @@ impl Command {
         match self {
             Self::Version => core::SdkCommand::Version,
             Self::Status => core::SdkCommand::Status,
+            Self::Check => core::SdkCommand::Workspace(core::WorkspaceCommand::Check),
             Self::Repair { command } => core::SdkCommand::Repair(command.into_core()),
             Self::Toolchain { command } => core::SdkCommand::Toolchain(command.into_core()),
             Self::Template { command } => core::SdkCommand::Template(command.into_core()),
@@ -92,15 +131,23 @@ impl Command {
             Self::Game { command } => leaf_command(core::ContentType::Game, command),
             Self::EngineMod { command } => leaf_command(core::ContentType::EngineMod, command),
             Self::GameMod { command } => leaf_command(core::ContentType::GameMod, command),
-            Self::ExtensionMod { command } => leaf_command(core::ContentType::ExtensionMod, command),
+            Self::ExtensionMod { command } => {
+                leaf_command(core::ContentType::ExtensionMod, command)
+            }
         }
     }
 }
 
 fn pack_command(pack_type: core::ContentType, command: PackCommand) -> core::SdkCommand {
-    core::SdkCommand::Pack { pack_type, command: command.into_core() }
+    core::SdkCommand::Pack {
+        pack_type,
+        command: command.into_core(),
+    }
 }
 
 fn leaf_command(content_type: core::ContentType, command: LeafCommand) -> core::SdkCommand {
-    core::SdkCommand::Leaf { content_type, command: command.into_core() }
+    core::SdkCommand::Leaf {
+        content_type,
+        command: command.into_core(),
+    }
 }

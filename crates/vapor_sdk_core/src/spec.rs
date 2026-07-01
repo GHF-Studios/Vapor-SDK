@@ -4,6 +4,7 @@ mod content;
 mod repair;
 mod template;
 mod toolchain;
+mod workspace;
 
 use crate::commands::SdkCommand;
 
@@ -47,19 +48,27 @@ pub fn describe_command(command: &SdkCommand) -> CommandSpec {
             &[],
             &["display toolchain, template, and project state"],
         ),
+        SdkCommand::Workspace(command) => workspace::describe(command),
         SdkCommand::Repair(command) => repair::describe(command),
         SdkCommand::Toolchain(command) => toolchain::describe(command),
         SdkCommand::Template(command) => template::describe(command),
         SdkCommand::Packagepack(command) => content::describe_packagepack(command),
         SdkCommand::Pack { pack_type, command } => content::describe_pack(*pack_type, command),
-        SdkCommand::Leaf { content_type, command } => {
-            content::describe_leaf(*content_type, command)
-        }
+        SdkCommand::Leaf {
+            content_type,
+            command,
+        } => content::describe_leaf(*content_type, command),
     }
 }
 
 pub(super) fn read_spec(action: impl Into<String>, summary: &'static str) -> CommandSpec {
-    spec(action, summary, StateSurface::ReadOnly, &[], &["display requested information"])
+    spec(
+        action,
+        summary,
+        StateSurface::ReadOnly,
+        &[],
+        &["display requested information"],
+    )
 }
 
 pub(super) fn spec(
@@ -69,5 +78,11 @@ pub(super) fn spec(
     preconditions: &'static [&'static str],
     future_effects: &'static [&'static str],
 ) -> CommandSpec {
-    CommandSpec { action: action.into(), summary, surface, preconditions, future_effects }
+    CommandSpec {
+        action: action.into(),
+        summary,
+        surface,
+        preconditions,
+        future_effects,
+    }
 }

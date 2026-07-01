@@ -7,9 +7,7 @@ use std::path::PathBuf;
 use vapor_core::ToolchainComponent;
 
 use super::dist::{ChannelManifest, DistArchive, DistError};
-use super::{
-    toolchain_status, ToolchainStatus, ToolchainStatusError, BOOTSTRAP_DOWNLOADS_DIR,
-};
+use super::{BOOTSTRAP_DOWNLOADS_DIR, ToolchainStatus, ToolchainStatusError, toolchain_status};
 
 /// Zero-mutation plan for installing the canonical Vapor Rust/Cargo toolchain.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,7 +35,9 @@ pub fn toolchain_install_plan() -> Result<ToolchainInstallPlan, ToolchainPlanErr
     let status = toolchain_status()?;
 
     if !status.host_supported {
-        return Err(ToolchainPlanError::UnsupportedHost(status.host_triple.to_owned()));
+        return Err(ToolchainPlanError::UnsupportedHost(
+            status.host_triple.to_owned(),
+        ));
     }
 
     let (manifest_url, manifest) = ChannelManifest::fetch(&status.toolchain)?;
@@ -47,18 +47,66 @@ pub fn toolchain_install_plan() -> Result<ToolchainInstallPlan, ToolchainPlanErr
         .join(status.toolchain.identifier());
     let mut archives = Vec::new();
 
-    push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::Rustc, "rustc", status.host_triple)?;
-    push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::Cargo, "cargo", status.host_triple)?;
-    push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::Rustfmt, "rustfmt-preview", status.host_triple)?;
-    push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::Clippy, "clippy-preview", status.host_triple)?;
+    push_host_archive(
+        &mut archives,
+        &download_root,
+        &manifest,
+        ToolchainComponent::Rustc,
+        "rustc",
+        status.host_triple,
+    )?;
+    push_host_archive(
+        &mut archives,
+        &download_root,
+        &manifest,
+        ToolchainComponent::Cargo,
+        "cargo",
+        status.host_triple,
+    )?;
+    push_host_archive(
+        &mut archives,
+        &download_root,
+        &manifest,
+        ToolchainComponent::Rustfmt,
+        "rustfmt-preview",
+        status.host_triple,
+    )?;
+    push_host_archive(
+        &mut archives,
+        &download_root,
+        &manifest,
+        ToolchainComponent::Clippy,
+        "clippy-preview",
+        status.host_triple,
+    )?;
 
     for target in status.supported_target_triples() {
-        push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::RustStd, "rust-std", target)?;
+        push_host_archive(
+            &mut archives,
+            &download_root,
+            &manifest,
+            ToolchainComponent::RustStd,
+            "rust-std",
+            target,
+        )?;
     }
 
-    push_host_archive(&mut archives, &download_root, &manifest, ToolchainComponent::RustSrc, "rust-src", "*")?;
+    push_host_archive(
+        &mut archives,
+        &download_root,
+        &manifest,
+        ToolchainComponent::RustSrc,
+        "rust-src",
+        "*",
+    )?;
 
-    Ok(ToolchainInstallPlan { status, manifest_url, manifest_date: manifest.date, download_root, archives })
+    Ok(ToolchainInstallPlan {
+        status,
+        manifest_url,
+        manifest_date: manifest.date,
+        download_root,
+        archives,
+    })
 }
 
 fn push_host_archive(
@@ -69,7 +117,11 @@ fn push_host_archive(
     package: &str,
     target: &str,
 ) -> Result<(), ToolchainPlanError> {
-    archives.push(archive_plan(component, download_root, manifest.archive(package, target)?)?);
+    archives.push(archive_plan(
+        component,
+        download_root,
+        manifest.archive(package, target)?,
+    )?);
     Ok(())
 }
 
@@ -120,8 +172,14 @@ impl fmt::Display for ToolchainPlanError {
         match self {
             Self::Status(error) => write!(formatter, "{error}"),
             Self::Dist(error) => write!(formatter, "{error}"),
-            Self::UnsupportedHost(host) => write!(formatter, "host triple `{host}` is not supported by this Vapor toolchain pin"),
-            Self::InvalidArchiveUrl(url) => write!(formatter, "official Rust archive URL has no filename: {url}"),
+            Self::UnsupportedHost(host) => write!(
+                formatter,
+                "host triple `{host}` is not supported by this Vapor toolchain pin"
+            ),
+            Self::InvalidArchiveUrl(url) => write!(
+                formatter,
+                "official Rust archive URL has no filename: {url}"
+            ),
         }
     }
 }

@@ -9,13 +9,13 @@ use std::error::Error;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-use vapor_core::{canonical_toolchain, current_host_triple, CanonicalToolchain, ManifestError};
+use vapor_core::{CanonicalToolchain, ManifestError, canonical_toolchain, current_host_triple};
 
 pub use dist::DistError;
-pub use install::{toolchain_install, ToolchainInstallError, ToolchainInstallReport};
+pub use install::{ToolchainInstallError, ToolchainInstallReport, toolchain_install};
 
 pub use plan::{
-    toolchain_install_plan, ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError,
+    ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError, toolchain_install_plan,
 };
 
 /// Environment variable that overrides where Vapor stores executable-local state.
@@ -162,7 +162,10 @@ fn vapor_home() -> Result<(VaporHomeSource, PathBuf), ToolchainStatusError> {
             .ok_or(ToolchainStatusError::ExecutableHasNoParent)?;
         Ok((VaporHomeSource::ExecutableRoot, root.to_path_buf()))
     } else {
-        Ok((VaporHomeSource::ExecutableRoot, executable_dir.to_path_buf()))
+        Ok((
+            VaporHomeSource::ExecutableRoot,
+            executable_dir.to_path_buf(),
+        ))
     }
 }
 
@@ -190,7 +193,9 @@ fn inspect_install_state(
     if missing.is_empty() {
         ToolchainInstallState::PresentUnverified
     } else {
-        ToolchainInstallState::Broken { reason: format!("missing {}", missing.join(" and ")) }
+        ToolchainInstallState::Broken {
+            reason: format!("missing {}", missing.join(" and ")),
+        }
     }
 }
 
@@ -215,7 +220,9 @@ impl fmt::Display for ToolchainStatusError {
             Self::CurrentExecutable(error) => {
                 write!(formatter, "failed to locate current executable: {error}")
             }
-            Self::ExecutableHasNoParent => write!(formatter, "current executable has no parent directory"),
+            Self::ExecutableHasNoParent => {
+                write!(formatter, "current executable has no parent directory")
+            }
         }
     }
 }

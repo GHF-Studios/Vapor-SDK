@@ -43,7 +43,10 @@ impl ChannelManifest {
             .unwrap_or(false);
 
         if !available {
-            return Err(DistError::UnavailableTarget { package: package.to_owned(), target: target.to_owned() });
+            return Err(DistError::UnavailableTarget {
+                package: package.to_owned(),
+                target: target.to_owned(),
+            });
         }
 
         Ok(DistArchive {
@@ -109,13 +112,24 @@ impl From<toml::de::Error> for DistError {
 impl fmt::Display for DistError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Network(error) => write!(formatter, "failed to fetch Rust dist manifest: {error}"),
-            Self::Read(error) => write!(formatter, "failed to read Rust dist manifest response: {error}"),
+            Self::Network(error) => {
+                write!(formatter, "failed to fetch Rust dist manifest: {error}")
+            }
+            Self::Read(error) => write!(
+                formatter,
+                "failed to read Rust dist manifest response: {error}"
+            ),
             Self::Parse(error) => write!(formatter, "failed to parse Rust dist manifest: {error}"),
             Self::MissingField(path) => write!(formatter, "Rust dist manifest is missing `{path}`"),
-            Self::InvalidField(path) => write!(formatter, "Rust dist manifest field `{path}` has an unexpected type"),
+            Self::InvalidField(path) => write!(
+                formatter,
+                "Rust dist manifest field `{path}` has an unexpected type"
+            ),
             Self::UnavailableTarget { package, target } => {
-                write!(formatter, "Rust dist package `{package}` is unavailable for target `{target}`")
+                write!(
+                    formatter,
+                    "Rust dist package `{package}` is unavailable for target `{target}`"
+                )
             }
         }
     }

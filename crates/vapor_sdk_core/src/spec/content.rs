@@ -1,8 +1,8 @@
 //! SDK content command specifications.
 
-use super::{read_spec, spec, CommandSpec, StateSurface};
+use super::{CommandSpec, StateSurface, read_spec, spec};
 use crate::commands::{
-    ContentReadCommand, LeafCommand, PackagepackCommand, PackCommand, PackCompositionCommand,
+    ContentReadCommand, LeafCommand, PackCommand, PackCompositionCommand, PackagepackCommand,
     SourceAuthoringCommand,
 };
 use crate::content::ContentType;
@@ -52,17 +52,21 @@ fn describe_read(content_type: ContentType, command: &ContentReadCommand) -> Com
 
 fn describe_author(content_type: ContentType, command: &SourceAuthoringCommand) -> CommandSpec {
     let (action, summary, surface) = match command {
-        SourceAuthoringCommand::New { .. } => {
-            ("new", "Create a new source project.", StateSurface::AuthoredSource)
-        }
+        SourceAuthoringCommand::New { .. } => (
+            "new",
+            "Create a new source project.",
+            StateSurface::AuthoredSource,
+        ),
         SourceAuthoringCommand::Init { .. } => (
             "init",
             "Initialize the current empty directory as a source project.",
             StateSurface::AuthoredSource,
         ),
-        SourceAuthoringCommand::Build { .. } => {
-            ("build", "Build source artifacts.", StateSurface::BuildArtifact)
-        }
+        SourceAuthoringCommand::Build { .. } => (
+            "build",
+            "Build source artifacts.",
+            StateSurface::BuildArtifact,
+        ),
         SourceAuthoringCommand::Package { .. } => (
             "package",
             "Package content for distribution.",
@@ -101,7 +105,10 @@ fn composition_spec(action: impl Into<String>, summary: &'static str) -> Command
         action,
         summary,
         StateSurface::AuthoredComposition,
-        &["target pack source is available", "child type is allowed by the parent pack type"],
+        &[
+            "target pack source is available",
+            "child type is allowed by the parent pack type",
+        ],
         &["update authored pack membership or active selection when implemented"],
     )
 }
