@@ -14,10 +14,10 @@ pub(super) fn describe(command: &ToolchainCommand) -> CommandSpec {
         ),
         ToolchainCommand::Install => spec(
             "sdk toolchain install",
-            "Install the pinned Rust/Cargo toolchain.",
-            StateSurface::Toolchain,
+            "Plan the pinned Rust/Cargo toolchain installation.",
+            StateSurface::ReadOnly,
             &["toolchain pin is known"],
-            &["install pinned toolchain components"],
+            &["resolve official Rust distribution archives without mutating local state"],
         ),
         ToolchainCommand::Repair => spec(
             "sdk toolchain repair",

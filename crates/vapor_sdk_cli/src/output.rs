@@ -1,18 +1,19 @@
 //! Output for parsed SDK commands.
 
 use vapor_sdk_core::{
-    toolchain_status, CommandSpec, GlobalOptions, SdkCommand, ToolchainCommand,
-    ToolchainInstallState, ToolchainStatusError,
+    toolchain_install_plan, toolchain_status, CommandSpec, GlobalOptions, SdkCommand,
+    ToolchainCommand, ToolchainInstallState,
 };
 
 pub(crate) fn print_command(
     globals: GlobalOptions,
     command: &SdkCommand,
-) -> Result<(), ToolchainStatusError> {
+) -> Result<(), Box<dyn std::error::Error>> {
     let spec = vapor_sdk_core::describe_command(command);
 
     match command {
         SdkCommand::Toolchain(ToolchainCommand::Status) => print_toolchain_status(globals, spec),
+        SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install_plan(globals, spec),
         _ => {
             print_stub(globals, spec);
             Ok(())
@@ -41,7 +42,7 @@ fn print_stub(globals: GlobalOptions, spec: CommandSpec) {
 fn print_toolchain_status(
     globals: GlobalOptions,
     spec: CommandSpec,
-) -> Result<(), ToolchainStatusError> {
+) -> Result<(), Box<dyn std::error::Error>> {
     let status = toolchain_status()?;
 
     println!("{}", spec.summary);
@@ -71,6 +72,43 @@ fn print_toolchain_status(
         println!("channel: {}", status.toolchain.channel);
         println!("date: {}", status.toolchain.date);
         println!("{}: override with a portable/dev Vapor root", vapor_sdk_core::VAPOR_HOME_ENV);
+    }
+
+    Ok(())
+}
+
+fn print_toolchain_install_plan(
+    globals: GlobalOptions,
+    spec: CommandSpec,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let plan = toolchain_install_plan()?;
+
+    println!("{}", spec.summary);
+    println!("toolchain: {}", plan.status.toolchain.identifier());
+    println!("host: {}", plan.status.host_triple);
+    println!("manifest: {}", plan.manifest_url);
+    println!("manifest_date: {}", plan.manifest_date);
+    println!("vapor_home: {}", plan.status.vapor_home.display());
+    println!("toolchain_root: {}", plan.status.toolchain_root.display());
+    println!("dist_cache: {}", plan.dist_cache.display());
+    println!("archive_count: {}", plan.archives.len());
+    println!("archives:");
+
+    for archive in &plan.archives {
+        println!("  {} {}", archive.component.as_str(), archive.target);
+        println!("    package: {}", archive.package);
+        println!("    url: {}", archive.url);
+        println!("    sha256: {}", archive.sha256);
+        println!("    cache_path: {}", archive.cache_path.display());
+    }
+
+    if globals.verbose {
+        println!("state_surface: {:?}", spec.surface);
+        print_lines("preconditions", spec.preconditions);
+        print_lines("future_effects", spec.future_effects);
+        print_lines("supported_hosts", plan.status.supported_host_triples());
+        print_lines("supported_targets", plan.status.supported_target_triples());
+        println!("install_state: {}", plan.status.install_state.as_str());
     }
 
     Ok(())

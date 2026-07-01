@@ -1,11 +1,19 @@
 //! SDK-managed toolchain command intent and local status reporting.
 
+mod dist;
+mod plan;
+
 use std::env;
 use std::error::Error;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
 use vapor_core::{canonical_toolchain, current_host_triple, CanonicalToolchain, ManifestError};
+
+pub use plan::{
+    toolchain_install_plan, ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError,
+};
+pub use dist::DistError;
 
 /// Environment variable that overrides where Vapor stores executable-local state.
 pub const VAPOR_HOME_ENV: &str = "VAPOR_HOME";

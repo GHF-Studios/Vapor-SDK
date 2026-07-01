@@ -24,7 +24,8 @@ pub use repair::{RepairCommand, RepairTarget};
 pub use spec::{describe_command, CommandSpec, StateSurface};
 pub use template::TemplateCommand;
 pub use toolchain::{
-    toolchain_status, ToolchainCommand, ToolchainInstallState, ToolchainStatus,
+    toolchain_install_plan, toolchain_status, DistError, ToolchainArchivePlan, ToolchainCommand,
+    ToolchainInstallPlan, ToolchainInstallState, ToolchainPlanError, ToolchainStatus,
     ToolchainStatusError, VaporHomeSource, VAPOR_HOME_ENV,
 };
 pub use vapor_core::ChildContentRef;

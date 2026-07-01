@@ -4,4 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+toml = "0.8"
+ureq = "2"
 vapor_core = { path = "../../../Vapor/crates/vapor_core" }
