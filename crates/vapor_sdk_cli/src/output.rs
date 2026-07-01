@@ -1,7 +1,7 @@
 //! Output for parsed SDK commands.
 
 use vapor_sdk_core::{
-    toolchain_install_plan, toolchain_status, CommandSpec, GlobalOptions, SdkCommand,
+    toolchain_install, toolchain_status, CommandSpec, GlobalOptions, SdkCommand,
     ToolchainCommand, ToolchainInstallState,
 };
 
@@ -13,7 +13,7 @@ pub(crate) fn print_command(
 
     match command {
         SdkCommand::Toolchain(ToolchainCommand::Status) => print_toolchain_status(globals, spec),
-        SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install_plan(globals, spec),
+        SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install(globals, spec),
         _ => {
             print_stub(globals, spec);
             Ok(())
@@ -54,7 +54,9 @@ fn print_toolchain_status(
         status.vapor_home.display(),
         status.vapor_home_source.as_str()
     );
+    println!("toolchain_home: {}", status.toolchain_home.display());
     println!("toolchain_root: {}", status.toolchain_root.display());
+    println!("bootstrap_root: {}", status.bootstrap_root.display());
     println!("deploy_root: {}", status.deploy_root.display());
     println!("cargo: {}", status.cargo_path.display());
     println!("rustc: {}", status.rustc_path.display());
@@ -78,11 +80,12 @@ fn print_toolchain_status(
     Ok(())
 }
 
-fn print_toolchain_install_plan(
+fn print_toolchain_install(
     globals: GlobalOptions,
     spec: CommandSpec,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let plan = toolchain_install_plan()?;
+    let report = toolchain_install()?;
+    let plan = &report.plan;
 
     println!("{}", spec.summary);
     println!("toolchain: {}", plan.status.toolchain.identifier());
@@ -90,9 +93,13 @@ fn print_toolchain_install_plan(
     println!("manifest: {}", plan.manifest_url);
     println!("manifest_date: {}", plan.manifest_date);
     println!("vapor_home: {}", plan.status.vapor_home.display());
+    println!("toolchain_home: {}", plan.status.toolchain_home.display());
     println!("toolchain_root: {}", plan.status.toolchain_root.display());
+    println!("bootstrap_root: {}", plan.status.bootstrap_root.display());
     println!("deploy_root: {}", plan.status.deploy_root.display());
-    println!("dist_cache: {}", plan.dist_cache.display());
+    println!("download_root: {}", plan.download_root.display());
+    println!("staging_root: {}", report.staging_root.display());
+    println!("installed_root: {}", report.installed_root.display());
     println!("archive_count: {}", plan.archives.len());
     println!("archives:");
 
@@ -101,7 +108,7 @@ fn print_toolchain_install_plan(
         println!("    package: {}", archive.package);
         println!("    url: {}", archive.url);
         println!("    sha256: {}", archive.sha256);
-        println!("    cache_path: {}", archive.cache_path.display());
+        println!("    download_path: {}", archive.download_path.display());
     }
 
     if globals.verbose {

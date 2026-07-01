@@ -1,6 +1,7 @@
 //! SDK-managed toolchain command intent and local status reporting.
 
 mod dist;
+mod install;
 mod plan;
 
 use std::env;
@@ -10,16 +11,30 @@ use std::path::{Path, PathBuf};
 
 use vapor_core::{canonical_toolchain, current_host_triple, CanonicalToolchain, ManifestError};
 
+pub use dist::DistError;
+pub use install::{toolchain_install, ToolchainInstallError, ToolchainInstallReport};
+
 pub use plan::{
     toolchain_install_plan, ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError,
 };
-pub use dist::DistError;
 
 /// Environment variable that overrides where Vapor stores executable-local state.
 pub const VAPOR_HOME_ENV: &str = "VAPOR_HOME";
 
 /// Directory under `VAPOR_HOME` that contains the single active Vapor toolchain.
 pub const TOOLCHAIN_DIR: &str = "toolchain";
+
+/// Directory under `VAPOR_HOME/toolchain` that contains the active Rust/Cargo tree.
+pub const ACTIVE_TOOLCHAIN_DIR: &str = "active";
+
+/// Directory under `VAPOR_HOME/toolchain` used only while bootstrapping a toolchain.
+pub const TOOLCHAIN_BOOTSTRAP_DIR: &str = "bootstrap";
+
+/// Directory under `VAPOR_HOME/toolchain/bootstrap` for official Rust archives.
+pub const BOOTSTRAP_DOWNLOADS_DIR: &str = "downloads";
+
+/// Directory under `VAPOR_HOME/toolchain/bootstrap` for temporary assembly roots.
+pub const BOOTSTRAP_STAGING_DIR: &str = "staging";
 
 /// Directory under `VAPOR_HOME` where builds are promoted for testing/packaging.
 pub const DEPLOY_DIR: &str = "deploy";
@@ -43,8 +58,12 @@ pub struct ToolchainStatus {
     pub host_supported: bool,
     pub vapor_home_source: VaporHomeSource,
     pub vapor_home: PathBuf,
+    /// Root for all active and bootstrap toolchain state.
+    pub toolchain_home: PathBuf,
     /// Single active Rust/Cargo toolchain root for this Vapor install.
     pub toolchain_root: PathBuf,
+    /// Toolchain-only bootstrap area for downloads and staging.
+    pub bootstrap_root: PathBuf,
     /// Stable output root for future build/package promotion.
     pub deploy_root: PathBuf,
     pub cargo_path: PathBuf,
@@ -103,7 +122,9 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
     let toolchain = canonical_toolchain()?;
     let host_triple = current_host_triple();
     let (vapor_home_source, vapor_home) = vapor_home()?;
-    let toolchain_root = vapor_home.join(TOOLCHAIN_DIR);
+    let toolchain_home = vapor_home.join(TOOLCHAIN_DIR);
+    let toolchain_root = toolchain_home.join(ACTIVE_TOOLCHAIN_DIR);
+    let bootstrap_root = toolchain_home.join(TOOLCHAIN_BOOTSTRAP_DIR);
     let deploy_root = vapor_home.join(DEPLOY_DIR);
     let cargo_path = toolchain_root.join("bin").join(executable_name("cargo"));
     let rustc_path = toolchain_root.join("bin").join(executable_name("rustc"));
@@ -115,7 +136,9 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
         host_triple,
         vapor_home_source,
         vapor_home,
+        toolchain_home,
         toolchain_root,
+        bootstrap_root,
         deploy_root,
         cargo_path,
         rustc_path,
