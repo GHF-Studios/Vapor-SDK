@@ -83,7 +83,7 @@ fn print_toolchain_status(
     println!("toolchain_home: {}", status.toolchain_home.display());
     println!("toolchain_root: {}", status.toolchain_root.display());
     println!("bootstrap_root: {}", status.bootstrap_root.display());
-    println!("deploy_root: {}", status.deploy_root.display());
+    println!("output_root: {}", status.output_root.display());
     println!("cargo: {}", status.cargo_path.display());
     println!("rustc: {}", status.rustc_path.display());
     print_install_state(&status.install_state);
@@ -125,7 +125,7 @@ fn print_toolchain_install(
     println!("toolchain_home: {}", plan.status.toolchain_home.display());
     println!("toolchain_root: {}", plan.status.toolchain_root.display());
     println!("bootstrap_root: {}", plan.status.bootstrap_root.display());
-    println!("deploy_root: {}", plan.status.deploy_root.display());
+    println!("output_root: {}", plan.status.output_root.display());
     println!("download_root: {}", plan.download_root.display());
     println!("staging_root: {}", report.staging_root.display());
     println!("installed_root: {}", report.installed_root.display());

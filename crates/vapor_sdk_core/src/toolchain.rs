@@ -36,8 +36,8 @@ pub const BOOTSTRAP_DOWNLOADS_DIR: &str = "downloads";
 /// Directory under `VAPOR_HOME/toolchain/bootstrap` for temporary assembly roots.
 pub const BOOTSTRAP_STAGING_DIR: &str = "staging";
 
-/// Directory under `VAPOR_HOME` where builds are promoted for testing/packaging.
-pub const DEPLOY_DIR: &str = "deploy";
+/// Directory under `VAPOR_HOME` for SDK-managed build outputs.
+pub const OUTPUT_DIR: &str = "output";
 
 /// Toolchain commands for the pinned SDK-managed Rust/Cargo toolchain.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -65,7 +65,7 @@ pub struct ToolchainStatus {
     /// Toolchain-only bootstrap area for downloads and staging.
     pub bootstrap_root: PathBuf,
     /// Stable output root for future build/package promotion.
-    pub deploy_root: PathBuf,
+    pub output_root: PathBuf,
     pub cargo_path: PathBuf,
     pub rustc_path: PathBuf,
     pub install_state: ToolchainInstallState,
@@ -125,7 +125,7 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
     let toolchain_home = vapor_home.join(TOOLCHAIN_DIR);
     let toolchain_root = toolchain_home.join(ACTIVE_TOOLCHAIN_DIR);
     let bootstrap_root = toolchain_home.join(TOOLCHAIN_BOOTSTRAP_DIR);
-    let deploy_root = vapor_home.join(DEPLOY_DIR);
+    let output_root = vapor_home.join(OUTPUT_DIR);
     let cargo_path = toolchain_root.join("bin").join(executable_name("cargo"));
     let rustc_path = toolchain_root.join("bin").join(executable_name("rustc"));
     let install_state = inspect_install_state(&toolchain_root, &cargo_path, &rustc_path);
@@ -139,7 +139,7 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
         toolchain_home,
         toolchain_root,
         bootstrap_root,
-        deploy_root,
+        output_root,
         cargo_path,
         rustc_path,
         install_state,
