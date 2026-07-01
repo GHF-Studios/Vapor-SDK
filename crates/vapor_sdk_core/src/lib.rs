@@ -23,5 +23,8 @@ pub use options::GlobalOptions;
 pub use repair::{RepairCommand, RepairTarget};
 pub use spec::{describe_command, CommandSpec, StateSurface};
 pub use template::TemplateCommand;
-pub use toolchain::ToolchainCommand;
+pub use toolchain::{
+    toolchain_status, ToolchainCommand, ToolchainInstallState, ToolchainStatus,
+    ToolchainStatusError, VaporHomeSource, VAPOR_HOME_ENV,
+};
 pub use vapor_core::ChildContentRef;

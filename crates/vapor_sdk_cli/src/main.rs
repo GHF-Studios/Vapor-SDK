@@ -7,5 +7,8 @@ mod output;
 
 fn main() {
     let (globals, command) = cli::Cli::parse().into_parts();
-    output::print_stub(globals, vapor_sdk_core::describe_command(&command));
+    if let Err(error) = output::print_command(globals, &command) {
+        eprintln!("{error}");
+        std::process::exit(1);
+    }
 }
