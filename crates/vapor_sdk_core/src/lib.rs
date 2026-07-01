@@ -26,6 +26,6 @@ pub use template::TemplateCommand;
 pub use toolchain::{
     toolchain_install_plan, toolchain_status, DistError, ToolchainArchivePlan, ToolchainCommand,
     ToolchainInstallPlan, ToolchainInstallState, ToolchainPlanError, ToolchainStatus,
-    ToolchainStatusError, VaporHomeSource, VAPOR_HOME_ENV,
+    ToolchainStatusError, VaporHomeSource, DEPLOY_DIR, TOOLCHAIN_DIR, VAPOR_HOME_ENV,
 };
 pub use vapor_core::ChildContentRef;

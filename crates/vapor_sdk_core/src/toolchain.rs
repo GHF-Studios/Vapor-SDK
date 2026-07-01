@@ -18,6 +18,12 @@ pub use dist::DistError;
 /// Environment variable that overrides where Vapor stores executable-local state.
 pub const VAPOR_HOME_ENV: &str = "VAPOR_HOME";
 
+/// Directory under `VAPOR_HOME` that contains the single active Vapor toolchain.
+pub const TOOLCHAIN_DIR: &str = "toolchain";
+
+/// Directory under `VAPOR_HOME` where builds are promoted for testing/packaging.
+pub const DEPLOY_DIR: &str = "deploy";
+
 /// Toolchain commands for the pinned SDK-managed Rust/Cargo toolchain.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ToolchainCommand {
@@ -37,7 +43,10 @@ pub struct ToolchainStatus {
     pub host_supported: bool,
     pub vapor_home_source: VaporHomeSource,
     pub vapor_home: PathBuf,
+    /// Single active Rust/Cargo toolchain root for this Vapor install.
     pub toolchain_root: PathBuf,
+    /// Stable output root for future build/package promotion.
+    pub deploy_root: PathBuf,
     pub cargo_path: PathBuf,
     pub rustc_path: PathBuf,
     pub install_state: ToolchainInstallState,
@@ -94,10 +103,8 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
     let toolchain = canonical_toolchain()?;
     let host_triple = current_host_triple();
     let (vapor_home_source, vapor_home) = vapor_home()?;
-    let toolchain_root = vapor_home
-        .join("toolchains")
-        .join(toolchain.identifier())
-        .join(host_triple);
+    let toolchain_root = vapor_home.join(TOOLCHAIN_DIR);
+    let deploy_root = vapor_home.join(DEPLOY_DIR);
     let cargo_path = toolchain_root.join("bin").join(executable_name("cargo"));
     let rustc_path = toolchain_root.join("bin").join(executable_name("rustc"));
     let install_state = inspect_install_state(&toolchain_root, &cargo_path, &rustc_path);
@@ -109,6 +116,7 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
         vapor_home_source,
         vapor_home,
         toolchain_root,
+        deploy_root,
         cargo_path,
         rustc_path,
         install_state,

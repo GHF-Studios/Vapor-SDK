@@ -55,6 +55,7 @@ fn print_toolchain_status(
         status.vapor_home_source.as_str()
     );
     println!("toolchain_root: {}", status.toolchain_root.display());
+    println!("deploy_root: {}", status.deploy_root.display());
     println!("cargo: {}", status.cargo_path.display());
     println!("rustc: {}", status.rustc_path.display());
     print_install_state(&status.install_state);
@@ -90,6 +91,7 @@ fn print_toolchain_install_plan(
     println!("manifest_date: {}", plan.manifest_date);
     println!("vapor_home: {}", plan.status.vapor_home.display());
     println!("toolchain_root: {}", plan.status.toolchain_root.display());
+    println!("deploy_root: {}", plan.status.deploy_root.display());
     println!("dist_cache: {}", plan.dist_cache.display());
     println!("archive_count: {}", plan.archives.len());
     println!("archives:");
