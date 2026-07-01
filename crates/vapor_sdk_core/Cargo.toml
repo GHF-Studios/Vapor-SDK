@@ -4,3 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+vapor_core = { path = "../../../Vapor/crates/vapor_core" }

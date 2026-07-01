@@ -5,3 +5,4 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
+vapor_sdk_core = { path = "../vapor_sdk_core" }
