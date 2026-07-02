@@ -34,5 +34,6 @@ pub use toolchain::{
 pub use vapor_core::ChildContentRef;
 pub use workspace::{
     WorkspaceCargoReport, WorkspaceCommand, WorkspaceCommandError, WorkspaceDeployReport,
-    workspace_build, workspace_check, workspace_deploy, workspace_fmt,
+    WorkspaceStatusReport, WorkspaceSyncReport, workspace_build, workspace_check, workspace_deploy,
+    workspace_fmt, workspace_status, workspace_sync,
 };

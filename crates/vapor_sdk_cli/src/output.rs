@@ -2,8 +2,9 @@
 
 use vapor_sdk_core::{
     CommandSpec, GlobalOptions, SdkCommand, ToolchainCommand, ToolchainInstallState,
-    WorkspaceCargoReport, WorkspaceCommand, WorkspaceDeployReport, toolchain_install,
-    toolchain_status, workspace_build, workspace_check, workspace_deploy, workspace_fmt,
+    WorkspaceCargoReport, WorkspaceCommand, WorkspaceDeployReport, WorkspaceStatusReport,
+    WorkspaceSyncReport, toolchain_install, toolchain_status, workspace_build, workspace_check,
+    workspace_deploy, workspace_fmt, workspace_status, workspace_sync,
 };
 
 pub(crate) fn print_command(
@@ -13,6 +14,12 @@ pub(crate) fn print_command(
     let spec = vapor_sdk_core::describe_command(command);
 
     match command {
+        SdkCommand::Workspace(WorkspaceCommand::Status) => {
+            print_workspace_status(globals, spec, workspace_status()?)
+        }
+        SdkCommand::Workspace(WorkspaceCommand::Sync) => {
+            print_workspace_sync(globals, spec, workspace_sync()?)
+        }
         SdkCommand::Workspace(WorkspaceCommand::Check) => {
             print_workspace_cargo(globals, spec, workspace_check()?)
         }
@@ -32,6 +39,44 @@ pub(crate) fn print_command(
             Ok(())
         }
     }
+}
+
+fn print_workspace_status(
+    globals: GlobalOptions,
+    spec: CommandSpec,
+    report: WorkspaceStatusReport,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", spec.summary);
+    print_workspace_status_report(&report);
+
+    if globals.verbose {
+        print_workspace_spec(&spec);
+    }
+
+    Ok(())
+}
+
+fn print_workspace_sync(
+    globals: GlobalOptions,
+    spec: CommandSpec,
+    report: WorkspaceSyncReport,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", spec.summary);
+    print_workspace_status_report(&report.status);
+    println!("changed_paths:");
+    if report.changed_paths.is_empty() {
+        println!("  none");
+    } else {
+        for path in report.changed_paths {
+            println!("  {}", path.display());
+        }
+    }
+
+    if globals.verbose {
+        print_workspace_spec(&spec);
+    }
+
+    Ok(())
 }
 
 fn print_workspace_cargo(
@@ -98,6 +143,24 @@ fn print_workspace_cargo_report(report: &WorkspaceCargoReport) {
     println!("target_dir: {}", report.target_dir.display());
     println!("cargo_args: {}", report.cargo_args.join(" "));
     println!("status: {}", report.status);
+}
+
+fn print_workspace_status_report(report: &WorkspaceStatusReport) {
+    println!(
+        "invocation_directory: {}",
+        report.invocation_directory.display()
+    );
+    println!("workspace_root: {}", report.workspace_root.display());
+    println!(
+        "workspace_kind: {}",
+        report.workspace_kind.as_deref().unwrap_or("none")
+    );
+    println!(
+        "workspace_id: {}",
+        report.workspace_id.as_deref().unwrap_or("none")
+    );
+    println!("cargo_manifest_exists: {}", report.cargo_manifest_exists);
+    println!("crates_dir_exists: {}", report.crates_dir_exists);
 }
 
 fn print_workspace_spec(spec: &CommandSpec) {

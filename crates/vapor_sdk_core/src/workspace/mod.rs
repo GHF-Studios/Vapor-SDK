@@ -4,14 +4,21 @@ mod cargo;
 mod deploy;
 mod error;
 mod identity;
+mod manage;
 mod report;
 
 pub use error::WorkspaceCommandError;
-pub use report::{WorkspaceCargoReport, WorkspaceDeployReport};
+pub use report::{
+    WorkspaceCargoReport, WorkspaceDeployReport, WorkspaceStatusReport, WorkspaceSyncReport,
+};
 
 /// Commands that operate on the current authoring workspace.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WorkspaceCommand {
+    /// Inspect the current Vapor workspace identity and managed structure.
+    Status,
+    /// Create or update SDK-managed workspace structure.
+    Sync,
     /// Run `cargo check` through the Vapor-managed Cargo binary.
     Check,
     /// Run `cargo fmt` through the Vapor-managed Cargo binary.
@@ -20,6 +27,16 @@ pub enum WorkspaceCommand {
     Build,
     /// Build and promote the first-party SDK CLI into the executable-root `bin` directory.
     Deploy,
+}
+
+/// Inspect the current Vapor workspace identity and managed structure.
+pub fn workspace_status() -> Result<WorkspaceStatusReport, WorkspaceCommandError> {
+    manage::workspace_status()
+}
+
+/// Create or update SDK-managed workspace structure.
+pub fn workspace_sync() -> Result<WorkspaceSyncReport, WorkspaceCommandError> {
+    manage::workspace_sync()
 }
 
 /// Run `cargo check --workspace` through `$VAPOR_HOME/toolchain/active/bin/cargo`.

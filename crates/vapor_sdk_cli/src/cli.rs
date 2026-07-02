@@ -67,6 +67,10 @@ enum Command {
     Build,
     /// Build and promote the SDK CLI into the executable-root `bin` directory.
     Deploy,
+    Workspace {
+        #[command(subcommand)]
+        command: WorkspaceManageCommand,
+    },
     Repair {
         #[command(subcommand)]
         command: RepairCommand,
@@ -129,6 +133,7 @@ impl Command {
             Self::Fmt => core::SdkCommand::Workspace(core::WorkspaceCommand::Fmt),
             Self::Build => core::SdkCommand::Workspace(core::WorkspaceCommand::Build),
             Self::Deploy => core::SdkCommand::Workspace(core::WorkspaceCommand::Deploy),
+            Self::Workspace { command } => core::SdkCommand::Workspace(command.into_core()),
             Self::Repair { command } => core::SdkCommand::Repair(command.into_core()),
             Self::Toolchain { command } => core::SdkCommand::Toolchain(command.into_core()),
             Self::Template { command } => core::SdkCommand::Template(command.into_core()),
@@ -143,6 +148,23 @@ impl Command {
             Self::ExtensionMod { command } => {
                 leaf_command(core::ContentType::ExtensionMod, command)
             }
+        }
+    }
+}
+
+#[derive(Subcommand)]
+enum WorkspaceManageCommand {
+    /// Inspect the current Vapor workspace identity and managed structure.
+    Status,
+    /// Create or update SDK-managed workspace structure.
+    Sync,
+}
+
+impl WorkspaceManageCommand {
+    fn into_core(self) -> core::WorkspaceCommand {
+        match self {
+            Self::Status => core::WorkspaceCommand::Status,
+            Self::Sync => core::WorkspaceCommand::Sync,
         }
     }
 }

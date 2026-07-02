@@ -9,7 +9,7 @@ use super::report::WorkspaceDeployReport;
 
 const DEV_ARTIFACT_DIR: &str = "debug";
 const SDK_CLI_PACKAGE: &str = "vapor_sdk_cli";
-const SDK_REPO_KIND: &str = "vapor_sdk";
+const SDK_REPO_KIND: &str = "sdk";
 
 pub(super) fn workspace_deploy() -> Result<WorkspaceDeployReport, WorkspaceCommandError> {
     require_current_repo_kind(SDK_REPO_KIND)?;

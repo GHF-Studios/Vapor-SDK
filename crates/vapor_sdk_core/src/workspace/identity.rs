@@ -22,13 +22,13 @@ pub(super) fn discover_workspace_identity() -> Result<WorkspaceIdentity, Workspa
         if manifest_path.is_file() {
             let text = std::fs::read_to_string(&manifest_path)?;
             let manifest = text.parse::<Value>()?;
-            let vapor = manifest.get("vapor");
-            let kind = vapor
-                .and_then(|vapor| vapor.get("kind"))
+            let workspace = manifest.get("workspace");
+            let kind = workspace
+                .and_then(|workspace| workspace.get("kind"))
                 .and_then(Value::as_str)
                 .map(str::to_owned);
-            let id = vapor
-                .and_then(|vapor| vapor.get("id"))
+            let id = workspace
+                .and_then(|workspace| workspace.get("id"))
                 .and_then(Value::as_str)
                 .map(str::to_owned);
 

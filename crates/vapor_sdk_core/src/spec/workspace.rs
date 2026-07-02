@@ -5,6 +5,20 @@ use crate::workspace::WorkspaceCommand;
 
 pub(super) fn describe(command: &WorkspaceCommand) -> CommandSpec {
     match command {
+        WorkspaceCommand::Status => spec(
+            "sdk workspace status",
+            "Inspect the current Vapor workspace identity and managed structure.",
+            StateSurface::ReadOnly,
+            &["Vapor.toml exists at or above the invocation directory"],
+            &["display workspace kind, id, root, and managed structure state"],
+        ),
+        WorkspaceCommand::Sync => spec(
+            "sdk workspace sync",
+            "Create or update SDK-managed custom-content workspace structure.",
+            StateSurface::AuthoredSource,
+            &["workspace kind is custom-content"],
+            &["create missing managed workspace files and directories"],
+        ),
         WorkspaceCommand::Check => spec(
             "sdk check",
             "Check the current workspace through the Vapor-managed Cargo binary.",

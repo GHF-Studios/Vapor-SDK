@@ -24,3 +24,21 @@ pub struct WorkspaceDeployReport {
     pub source_executable: PathBuf,
     pub deployed_executable: PathBuf,
 }
+
+/// Current SDK-managed workspace structure state.
+#[derive(Debug, Clone)]
+pub struct WorkspaceStatusReport {
+    pub invocation_directory: PathBuf,
+    pub workspace_root: PathBuf,
+    pub workspace_kind: Option<String>,
+    pub workspace_id: Option<String>,
+    pub cargo_manifest_exists: bool,
+    pub crates_dir_exists: bool,
+}
+
+/// Result of syncing managed workspace structure.
+#[derive(Debug, Clone)]
+pub struct WorkspaceSyncReport {
+    pub status: WorkspaceStatusReport,
+    pub changed_paths: Vec<PathBuf>,
+}
