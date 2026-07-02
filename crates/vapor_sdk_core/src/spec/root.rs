@@ -1,6 +1,6 @@
 //! Command specifications for root package and SteamPipe publishing.
 
-use crate::root::RootCommand;
+use crate::root::types::RootCommand;
 
 use super::{CommandSpec, StateSurface, spec};
 

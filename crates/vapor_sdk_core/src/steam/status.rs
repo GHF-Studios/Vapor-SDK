@@ -2,7 +2,7 @@ use std::env;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use crate::root::ROOT_STEAM_APP_ID;
+use crate::root::types::ROOT_STEAM_APP_ID;
 use crate::toolchain::toolchain_status;
 
 use super::error::SteamCommandError;

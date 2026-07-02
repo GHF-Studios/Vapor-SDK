@@ -1,4 +1,5 @@
-use crate::steam::{SteamRunAppBuildRequest, steam_run_app_build, steam_run_app_build_plan};
+use crate::steam::process::{steam_run_app_build, steam_run_app_build_plan};
+use crate::steam::types::SteamRunAppBuildRequest;
 
 use super::error::RootCommandError;
 use super::package::root_package;

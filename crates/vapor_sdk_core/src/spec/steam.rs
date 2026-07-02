@@ -1,6 +1,6 @@
 //! Command specifications for SteamCMD tooling.
 
-use crate::steam::SteamCommand;
+use crate::steam::types::SteamCommand;
 
 use super::{CommandSpec, StateSurface, spec};
 

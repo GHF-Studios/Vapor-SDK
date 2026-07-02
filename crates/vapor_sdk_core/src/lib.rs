@@ -26,16 +26,7 @@ pub use content::{ContentSource, ContentType, allowed_pack_children};
 pub use environment::{EnvironmentCommand, EnvironmentReport, environment_status};
 pub use options::GlobalOptions;
 pub use repair::{RepairCommand, RepairTarget};
-pub use root::{
-    ROOT_STEAM_APP_ID, ROOT_STEAM_DEPOT_ID, RootCommand, RootCommandError, RootPackageReport,
-    RootPackageRequest, RootPublishReport, RootPublishRequest, root_package, root_publish,
-};
 pub use spec::{CommandSpec, StateSurface, describe_command};
-pub use steam::{
-    SteamCmdSource, SteamCommand, SteamCommandError, SteamLoginReport, SteamLoginRequest,
-    SteamRunAppBuildReport, SteamRunAppBuildRequest, SteamStatusReport, SteamStatusRequest,
-    steam_login, steam_run_app_build, steam_run_app_build_plan, steam_status,
-};
 pub use template::TemplateCommand;
 pub use toolchain::{
     ACTIVE_TOOLCHAIN_DIR, BOOTSTRAP_DOWNLOADS_DIR, BOOTSTRAP_STAGING_DIR, DistError, OUTPUT_DIR,

@@ -1,4 +1,5 @@
-use vapor_sdk_core::{CommandSpec, GlobalOptions, RootPackageReport, RootPublishReport};
+use vapor_sdk_core::root::types::{RootPackageReport, RootPublishReport};
+use vapor_sdk_core::{CommandSpec, GlobalOptions};
 
 use super::common::{OutputResult, print_spec, status_label};
 

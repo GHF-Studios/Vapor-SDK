@@ -5,9 +5,10 @@ use std::fmt;
 
 use dialoguer::Confirm;
 use owo_colors::{OwoColorize, Stream::Stdout};
+use vapor_sdk_core::root::types::RootCommand;
 use vapor_sdk_core::{
     CommandSpec, GlobalOptions, LeafCommand, PackCommand, PackagepackCommand, RepairCommand,
-    RootCommand, SdkCommand, SourceAuthoringCommand, ToolchainCommand, WorkspaceCommand,
+    SdkCommand, SourceAuthoringCommand, ToolchainCommand, WorkspaceCommand,
 };
 
 #[derive(Debug)]

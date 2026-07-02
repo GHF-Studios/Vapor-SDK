@@ -1,4 +1,5 @@
-use vapor_sdk_core::{CommandSpec, GlobalOptions, SteamLoginReport, SteamStatusReport};
+use vapor_sdk_core::steam::types::{SteamLoginReport, SteamStatusReport};
+use vapor_sdk_core::{CommandSpec, GlobalOptions};
 
 use super::common::{OutputResult, print_spec, status_label};
 

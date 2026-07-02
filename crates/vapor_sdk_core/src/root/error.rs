@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::path::PathBuf;
 
-use crate::steam::SteamCommandError;
+use crate::steam::error::SteamCommandError;
 use crate::toolchain::ToolchainStatusError;
 
 /// Error returned by root package or SteamPipe publish workflows.

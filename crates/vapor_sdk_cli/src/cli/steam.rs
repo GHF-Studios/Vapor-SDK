@@ -3,7 +3,9 @@
 use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
-use vapor_sdk_core as core;
+use vapor_sdk_core::steam::types::{
+    SteamCommand as CoreSteamCommand, SteamLoginRequest, SteamStatusRequest,
+};
 
 #[derive(Subcommand)]
 pub(super) enum SteamCommand {
@@ -14,10 +16,10 @@ pub(super) enum SteamCommand {
 }
 
 impl SteamCommand {
-    pub(super) fn into_core(self) -> core::SteamCommand {
+    pub(super) fn into_core(self) -> CoreSteamCommand {
         match self {
-            Self::Status(args) => core::SteamCommand::Status(args.into_core()),
-            Self::Login(args) => core::SteamCommand::Login(args.into_core()),
+            Self::Status(args) => CoreSteamCommand::Status(args.into_core()),
+            Self::Login(args) => CoreSteamCommand::Login(args.into_core()),
         }
     }
 }
@@ -30,8 +32,8 @@ pub(super) struct SteamToolArgs {
 }
 
 impl SteamToolArgs {
-    fn into_core(self) -> core::SteamStatusRequest {
-        core::SteamStatusRequest {
+    fn into_core(self) -> SteamStatusRequest {
+        SteamStatusRequest {
             steamcmd: self.steamcmd,
         }
     }
@@ -48,8 +50,8 @@ pub(super) struct SteamLoginArgs {
 }
 
 impl SteamLoginArgs {
-    fn into_core(self) -> core::SteamLoginRequest {
-        core::SteamLoginRequest {
+    fn into_core(self) -> SteamLoginRequest {
+        SteamLoginRequest {
             account: self.account,
             steamcmd: self.steamcmd,
         }

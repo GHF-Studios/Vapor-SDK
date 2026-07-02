@@ -3,8 +3,8 @@
 use crate::content::{ContentSource, ContentType};
 use crate::environment::EnvironmentCommand;
 use crate::repair::RepairCommand;
-use crate::root::RootCommand;
-use crate::steam::SteamCommand;
+use crate::root::types::RootCommand;
+use crate::steam::types::SteamCommand;
 use crate::template::TemplateCommand;
 use crate::toolchain::ToolchainCommand;
 use crate::workspace::WorkspaceCommand;

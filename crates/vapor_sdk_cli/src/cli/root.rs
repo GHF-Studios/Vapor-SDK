@@ -3,7 +3,10 @@
 use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
-use vapor_sdk_core as core;
+use vapor_sdk_core::root::types::{
+    ROOT_STEAM_APP_ID, ROOT_STEAM_DEPOT_ID, RootCommand as CoreRootCommand, RootPackageRequest,
+    RootPublishRequest,
+};
 
 #[derive(Subcommand)]
 pub(super) enum RootCommand {
@@ -14,10 +17,10 @@ pub(super) enum RootCommand {
 }
 
 impl RootCommand {
-    pub(super) fn into_core(self) -> core::RootCommand {
+    pub(super) fn into_core(self) -> CoreRootCommand {
         match self {
-            Self::Package(args) => core::RootCommand::Package(args.into_core()),
-            Self::Publish(args) => core::RootCommand::Publish(args.into_core()),
+            Self::Package(args) => CoreRootCommand::Package(args.into_core()),
+            Self::Publish(args) => CoreRootCommand::Publish(args.into_core()),
         }
     }
 }
@@ -28,10 +31,10 @@ pub(super) struct RootPackageArgs {
     #[arg(long, help_heading = "Execution")]
     plan: bool,
     /// Steam AppID for the root Vapor/Loo Cast application.
-    #[arg(long, default_value_t = core::ROOT_STEAM_APP_ID, help_heading = "Steam")]
+    #[arg(long, default_value_t = ROOT_STEAM_APP_ID, help_heading = "Steam")]
     app_id: u32,
     /// Steam DepotID that receives the root app files.
-    #[arg(long, default_value_t = core::ROOT_STEAM_DEPOT_ID, help_heading = "Steam")]
+    #[arg(long, default_value_t = ROOT_STEAM_DEPOT_ID, help_heading = "Steam")]
     depot_id: u32,
     /// Internal Steamworks build description.
     #[arg(
@@ -46,8 +49,8 @@ pub(super) struct RootPackageArgs {
 }
 
 impl RootPackageArgs {
-    fn into_core(self) -> core::RootPackageRequest {
-        core::RootPackageRequest {
+    fn into_core(self) -> RootPackageRequest {
+        RootPackageRequest {
             plan: self.plan,
             app_id: self.app_id,
             depot_id: self.depot_id,
@@ -63,10 +66,10 @@ pub(super) struct RootPublishArgs {
     #[arg(long, help_heading = "Execution")]
     plan: bool,
     /// Steam AppID for the root Vapor/Loo Cast application.
-    #[arg(long, default_value_t = core::ROOT_STEAM_APP_ID, help_heading = "Steam")]
+    #[arg(long, default_value_t = ROOT_STEAM_APP_ID, help_heading = "Steam")]
     app_id: u32,
     /// Steam DepotID that receives the root app files.
-    #[arg(long, default_value_t = core::ROOT_STEAM_DEPOT_ID, help_heading = "Steam")]
+    #[arg(long, default_value_t = ROOT_STEAM_DEPOT_ID, help_heading = "Steam")]
     depot_id: u32,
     /// Steam account used by SteamCMD.
     #[arg(long, help_heading = "Steam")]
@@ -87,8 +90,8 @@ pub(super) struct RootPublishArgs {
 }
 
 impl RootPublishArgs {
-    fn into_core(self) -> core::RootPublishRequest {
-        core::RootPublishRequest {
+    fn into_core(self) -> RootPublishRequest {
+        RootPublishRequest {
             plan: self.plan,
             app_id: self.app_id,
             depot_id: self.depot_id,
