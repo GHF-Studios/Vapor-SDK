@@ -5,8 +5,11 @@ use vapor_sdk_core as core;
 
 #[derive(Subcommand)]
 pub(super) enum ToolchainCommand {
+    /// Show the pinned Vapor Rust toolchain, host support, and install state.
     Status,
+    /// Download and install the pinned portable Vapor Rust toolchain.
     Install,
+    /// Repair the pinned portable Vapor Rust toolchain.
     Repair,
 }
 

@@ -23,6 +23,7 @@ pub struct WorkspaceDeployReport {
     pub build: WorkspaceCargoReport,
     pub source_executable: PathBuf,
     pub deployed_executable: PathBuf,
+    pub alias_executable: PathBuf,
 }
 
 /// Current SDK-managed workspace structure state.

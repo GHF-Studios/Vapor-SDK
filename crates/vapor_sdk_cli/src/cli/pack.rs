@@ -6,56 +6,50 @@ use vapor_sdk_core as core;
 
 #[derive(Subcommand)]
 pub(super) enum PackCommand {
-    List {
-        source: ContentSource,
-    },
-    Status {
-        pack_id: String,
-    },
-    Fingerprint {
-        pack_id: String,
-    },
-    Inspect {
-        pack_id: String,
-    },
-    Validate {
-        pack_id: String,
-    },
-    New {
-        pack_id: String,
-    },
-    Init {
-        pack_id: String,
-    },
+    /// List packs from one content source.
+    List { source: ContentSource },
+    /// Show local or discovered status for one pack.
+    Status { pack_id: String },
+    /// Compute or display the deterministic pack fingerprint.
+    Fingerprint { pack_id: String },
+    /// Inspect pack metadata, graph hints, and authoring state.
+    Inspect { pack_id: String },
+    /// Validate pack metadata and composition invariants.
+    Validate { pack_id: String },
+    /// Create a new pack source project.
+    New { pack_id: String },
+    /// Initialize the current empty directory as a pack source project.
+    Init { pack_id: String },
+    /// Add child content to an authored pack.
     Add {
         pack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Remove child content from an authored pack.
     Remove {
         pack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Select active child content inside an authored pack.
     Select {
         pack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Keep child content present but inactive inside an authored pack.
     Unselect {
         pack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
-    Build {
-        pack_id: String,
-    },
-    Package {
-        pack_id: String,
-    },
-    Publish {
-        pack_id: String,
-    },
+    /// Build pack source artifacts through Vapor.
+    Build { pack_id: String },
+    /// Package a pack for distribution.
+    Package { pack_id: String },
+    /// Publish a pack through configured content release channels.
+    Publish { pack_id: String },
 }
 
 impl PackCommand {

@@ -6,59 +6,52 @@ use vapor_sdk_core as core;
 
 #[derive(Subcommand)]
 pub(super) enum PackagepackCommand {
-    List {
-        source: ContentSource,
-    },
-    Status {
-        packagepack_id: String,
-    },
-    Fingerprint {
-        packagepack_id: String,
-    },
-    Inspect {
-        packagepack_id: String,
-    },
-    Validate {
-        packagepack_id: String,
-    },
-    Lock {
-        packagepack_id: String,
-    },
-    New {
-        packagepack_id: String,
-    },
-    Init {
-        packagepack_id: String,
-    },
+    /// List packagepacks from one content source.
+    List { source: ContentSource },
+    /// Show local or discovered status for one packagepack.
+    Status { packagepack_id: String },
+    /// Compute or display the deterministic packagepack fingerprint.
+    Fingerprint { packagepack_id: String },
+    /// Inspect packagepack metadata, graph hints, and authoring state.
+    Inspect { packagepack_id: String },
+    /// Validate packagepack metadata and composition invariants.
+    Validate { packagepack_id: String },
+    /// Write a persistent lock artifact for a packagepack graph.
+    Lock { packagepack_id: String },
+    /// Create a new packagepack source project.
+    New { packagepack_id: String },
+    /// Initialize the current empty directory as a packagepack source project.
+    Init { packagepack_id: String },
+    /// Add child content to an authored packagepack.
     Add {
         packagepack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Remove child content from an authored packagepack.
     Remove {
         packagepack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Select active child content inside an authored packagepack.
     Select {
         packagepack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
+    /// Keep child content present but inactive inside an authored packagepack.
     Unselect {
         packagepack_id: String,
         child_content_type: ContentType,
         child_content_id: String,
     },
-    Build {
-        packagepack_id: String,
-    },
-    Package {
-        packagepack_id: String,
-    },
-    Publish {
-        packagepack_id: String,
-    },
+    /// Build packagepack source artifacts through Vapor.
+    Build { packagepack_id: String },
+    /// Package a packagepack for distribution.
+    Package { packagepack_id: String },
+    /// Publish a packagepack through configured content release channels.
+    Publish { packagepack_id: String },
 }
 
 impl PackagepackCommand {

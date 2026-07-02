@@ -111,6 +111,7 @@ fn print_workspace_deploy(
         "deployed_executable: {}",
         report.deployed_executable.display()
     );
+    println!("alias_executable: {}", report.alias_executable.display());
 
     if globals.verbose {
         print_workspace_spec(&spec);
