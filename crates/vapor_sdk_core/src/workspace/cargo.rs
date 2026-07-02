@@ -9,8 +9,8 @@ use super::error::WorkspaceCommandError;
 use super::identity::{WorkspaceIdentity, discover_workspace_identity};
 use super::report::WorkspaceCargoReport;
 
-const CARGO_HOME_DIR: &str = "cargo";
-const CARGO_TARGET_DIR: &str = "cargo-target";
+const CARGO_HOME_DIR: &str = "cargo-home";
+const DEV_OUTPUT_DIR: &str = "dev";
 
 #[derive(Debug, Clone)]
 pub(super) struct VaporCargo {
@@ -25,7 +25,7 @@ impl VaporCargo {
         let toolchain = checked_toolchain_status()?;
         let identity = discover_workspace_identity()?;
         let cargo_home = toolchain.vapor_home.join(CARGO_HOME_DIR);
-        let target_dir = toolchain.output_root.join(CARGO_TARGET_DIR);
+        let target_dir = toolchain.output_root.join(DEV_OUTPUT_DIR);
 
         Ok(Self {
             toolchain,

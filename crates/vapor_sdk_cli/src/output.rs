@@ -142,7 +142,7 @@ fn print_workspace_cargo_report(report: &WorkspaceCargoReport) {
     println!("cargo: {}", report.cargo_path.display());
     println!("rustc: {}", report.rustc_path.display());
     println!("cargo_home: {}", report.cargo_home.display());
-    println!("target_dir: {}", report.target_dir.display());
+    println!("cargo_target_dir: {}", report.target_dir.display());
     println!("cargo_args: {}", report.cargo_args.join(" "));
     println!("status: {}", report.status);
 }
@@ -204,8 +204,8 @@ fn print_toolchain_status(
         status.vapor_home.display(),
         status.vapor_home_source.as_str()
     );
-    println!("toolchain_home: {}", status.toolchain_home.display());
-    println!("toolchain_root: {}", status.toolchain_root.display());
+    println!("rust_toolchain_home: {}", status.toolchain_home.display());
+    println!("rust_toolchain_root: {}", status.toolchain_root.display());
     println!("bootstrap_root: {}", status.bootstrap_root.display());
     println!("output_root: {}", status.output_root.display());
     println!("cargo: {}", status.cargo_path.display());
@@ -246,8 +246,14 @@ fn print_toolchain_install(
     println!("manifest: {}", plan.manifest_url);
     println!("manifest_date: {}", plan.manifest_date);
     println!("vapor_home: {}", plan.status.vapor_home.display());
-    println!("toolchain_home: {}", plan.status.toolchain_home.display());
-    println!("toolchain_root: {}", plan.status.toolchain_root.display());
+    println!(
+        "rust_toolchain_home: {}",
+        plan.status.toolchain_home.display()
+    );
+    println!(
+        "rust_toolchain_root: {}",
+        plan.status.toolchain_root.display()
+    );
     println!("bootstrap_root: {}", plan.status.bootstrap_root.display());
     println!("output_root: {}", plan.status.output_root.display());
     println!("download_root: {}", plan.download_root.display());

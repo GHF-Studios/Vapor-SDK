@@ -21,19 +21,19 @@ pub use plan::{
 /// Environment variable that overrides where Vapor stores executable-local state.
 pub const VAPOR_HOME_ENV: &str = "VAPOR_HOME";
 
-/// Directory under `VAPOR_HOME` that contains the single active Vapor toolchain.
-pub const TOOLCHAIN_DIR: &str = "toolchain";
+/// Directory under `VAPOR_HOME` that contains the single active Vapor Rust/Cargo toolchain.
+pub const RUST_TOOLCHAIN_DIR: &str = "rust-toolchain";
 
-/// Directory under `VAPOR_HOME/toolchain` that contains the active Rust/Cargo tree.
+/// Directory under `VAPOR_HOME/rust-toolchain` that contains the active Rust/Cargo tree.
 pub const ACTIVE_TOOLCHAIN_DIR: &str = "active";
 
-/// Directory under `VAPOR_HOME/toolchain` used only while bootstrapping a toolchain.
+/// Directory under `VAPOR_HOME/rust-toolchain` used only while bootstrapping a toolchain.
 pub const TOOLCHAIN_BOOTSTRAP_DIR: &str = "bootstrap";
 
-/// Directory under `VAPOR_HOME/toolchain/bootstrap` for official Rust archives.
+/// Directory under `VAPOR_HOME/rust-toolchain/bootstrap` for official Rust archives.
 pub const BOOTSTRAP_DOWNLOADS_DIR: &str = "downloads";
 
-/// Directory under `VAPOR_HOME/toolchain/bootstrap` for temporary assembly roots.
+/// Directory under `VAPOR_HOME/rust-toolchain/bootstrap` for temporary assembly roots.
 pub const BOOTSTRAP_STAGING_DIR: &str = "staging";
 
 /// Directory under `VAPOR_HOME` for SDK-managed build outputs.
@@ -122,7 +122,7 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
     let toolchain = canonical_toolchain()?;
     let host_triple = current_host_triple();
     let (vapor_home_source, vapor_home) = vapor_home()?;
-    let toolchain_home = vapor_home.join(TOOLCHAIN_DIR);
+    let toolchain_home = vapor_home.join(RUST_TOOLCHAIN_DIR);
     let toolchain_root = toolchain_home.join(ACTIVE_TOOLCHAIN_DIR);
     let bootstrap_root = toolchain_home.join(TOOLCHAIN_BOOTSTRAP_DIR);
     let output_root = vapor_home.join(OUTPUT_DIR);

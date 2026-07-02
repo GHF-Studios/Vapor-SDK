@@ -26,7 +26,7 @@ pub use spec::{CommandSpec, StateSurface, describe_command};
 pub use template::TemplateCommand;
 pub use toolchain::{
     ACTIVE_TOOLCHAIN_DIR, BOOTSTRAP_DOWNLOADS_DIR, BOOTSTRAP_STAGING_DIR, DistError, OUTPUT_DIR,
-    TOOLCHAIN_BOOTSTRAP_DIR, TOOLCHAIN_DIR, ToolchainArchivePlan, ToolchainCommand,
+    RUST_TOOLCHAIN_DIR, TOOLCHAIN_BOOTSTRAP_DIR, ToolchainArchivePlan, ToolchainCommand,
     ToolchainInstallError, ToolchainInstallPlan, ToolchainInstallReport, ToolchainInstallState,
     ToolchainPlanError, ToolchainStatus, ToolchainStatusError, VAPOR_HOME_ENV, VaporHomeSource,
     toolchain_install, toolchain_install_plan, toolchain_status,
