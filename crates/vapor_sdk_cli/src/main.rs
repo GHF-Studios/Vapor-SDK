@@ -4,6 +4,7 @@ use clap::Parser;
 
 mod cli;
 mod output;
+mod safety;
 
 fn main() {
     let (globals, command) = cli::Cli::parse().into_parts();

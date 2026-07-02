@@ -12,6 +12,7 @@ pub(crate) fn print_command(
     command: &SdkCommand,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let spec = vapor_sdk_core::describe_command(command);
+    crate::safety::guard(globals, command, &spec)?;
 
     match command {
         SdkCommand::Workspace(WorkspaceCommand::Status) => {
