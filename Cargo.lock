@@ -805,6 +805,7 @@ dependencies = [
 name = "vapor_sdk_core"
 version = "0.5.0"
 dependencies = [
+ "serde",
  "sha2",
  "tar",
  "toml",

@@ -21,6 +21,8 @@ pub enum WorkspaceCommandError {
         expected: String,
         actual: Option<String>,
     },
+    MissingContentGraph,
+    InvalidContentGraph(String),
     BuildFailedBeforeDeploy(ExitStatus),
     MissingBuiltExecutable(PathBuf),
     ExecutableHasNoFileName(PathBuf),
@@ -83,6 +85,13 @@ impl fmt::Display for WorkspaceCommandError {
                 "workspace kind must be `{expected}`, found `{}`",
                 actual.as_deref().unwrap_or("none")
             ),
+            Self::MissingContentGraph => write!(
+                formatter,
+                "custom-content workspace must declare at least one [[content]] entry"
+            ),
+            Self::InvalidContentGraph(reason) => {
+                write!(formatter, "invalid content graph: {reason}")
+            }
             Self::BuildFailedBeforeDeploy(status) => write!(
                 formatter,
                 "Vapor-managed cargo build failed before deploy with {status}"
@@ -111,6 +120,8 @@ impl Error for WorkspaceCommandError {
             | Self::CargoPathHasNoParent(_)
             | Self::MissingWorkspaceManifest(_)
             | Self::WrongWorkspaceKind { .. }
+            | Self::MissingContentGraph
+            | Self::InvalidContentGraph(_)
             | Self::BuildFailedBeforeDeploy(_)
             | Self::MissingBuiltExecutable(_)
             | Self::ExecutableHasNoFileName(_) => None,
