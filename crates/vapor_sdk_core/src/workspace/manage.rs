@@ -1,4 +1,6 @@
+use std::collections::HashSet;
 use std::fs;
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 use vapor_core::ContentType;
@@ -14,6 +16,8 @@ const GENERATED_FOOTER: &str = "# END MANAGED BY VAPOR.\n";
 const GENERATED_RS_HEADER: &str =
     "// MANAGED BY VAPOR. EDIT Vapor.toml, THEN RUN `vapor-sdk workspace sync`.\n";
 const GENERATED_RS_FOOTER: &str = "// END MANAGED BY VAPOR.\n";
+const SEEDED_RS_HEADER: &str = "// SEEDED BY VAPOR. THIS FILE IS USER-OWNED AFTER CREATION.\n";
+const SEEDED_RS_FOOTER: &str = "// END VAPOR SEED.\n";
 
 #[derive(Debug, Deserialize)]
 struct WorkspaceManifest {
@@ -37,9 +41,11 @@ pub(super) fn workspace_sync() -> Result<WorkspaceSyncReport, WorkspaceCommandEr
     let cargo_manifest = identity.workspace_root.join("Cargo.toml");
     let crates_dir = identity.workspace_root.join("crates");
 
-    sync_file(
+    sync_managed_file(
         &cargo_manifest,
         &workspace_cargo_toml(&content),
+        GENERATED_HEADER,
+        GENERATED_FOOTER,
         &mut changed_paths,
     )?;
 
@@ -60,19 +66,24 @@ pub(super) fn workspace_sync() -> Result<WorkspaceSyncReport, WorkspaceCommandEr
             changed_paths.push(src_dir.clone());
         }
 
-        sync_file(
+        sync_managed_file(
             &crate_dir.join("Cargo.toml"),
             &crate_cargo_toml(entry),
+            GENERATED_HEADER,
+            GENERATED_FOOTER,
             &mut changed_paths,
         )?;
-        sync_file(
+        sync_managed_file(
             &crate_dir.join("Vapor.toml"),
             &content_vapor_toml(entry),
+            GENERATED_HEADER,
+            GENERATED_FOOTER,
             &mut changed_paths,
         )?;
-        sync_file(
+        sync_seed_file(
             &src_dir.join("lib.rs"),
             &content_lib_rs(entry),
+            &legacy_content_lib_rs(entry),
             &mut changed_paths,
         )?;
     }
@@ -94,15 +105,22 @@ fn read_content_graph(
         return Err(WorkspaceCommandError::MissingContentGraph);
     }
 
+    let mut crate_names = HashSet::new();
     for entry in &content {
         entry
             .kind
             .parse::<ContentType>()
             .map_err(|error| WorkspaceCommandError::InvalidContentGraph(format!("{}", error)))?;
-        if crate_name(&entry.id).is_empty() {
+        let crate_name = crate_name(&entry.id);
+        if crate_name.is_empty() {
             return Err(WorkspaceCommandError::InvalidContentGraph(format!(
                 "content id `{}` does not produce a valid crate name",
                 entry.id
+            )));
+        }
+        if !crate_names.insert(crate_name.clone()) {
+            return Err(WorkspaceCommandError::InvalidContentGraph(format!(
+                "multiple content ids produce the generated crate name `{crate_name}`"
             )));
         }
     }
@@ -138,6 +156,13 @@ fn content_vapor_toml(entry: &ContentEntry) -> String {
 
 fn content_lib_rs(entry: &ContentEntry) -> String {
     format!(
+        "{SEEDED_RS_HEADER}#![forbid(unsafe_code)]\n\npub const CONTENT_KIND: &str = \"{}\";\npub const CONTENT_ID: &str = \"{}\";\n{SEEDED_RS_FOOTER}",
+        entry.kind, entry.id
+    )
+}
+
+fn legacy_content_lib_rs(entry: &ContentEntry) -> String {
+    format!(
         "{GENERATED_RS_HEADER}#![forbid(unsafe_code)]\n\npub const CONTENT_KIND: &str = \"{}\";\npub const CONTENT_ID: &str = \"{}\";\n{GENERATED_RS_FOOTER}",
         entry.kind, entry.id
     )
@@ -157,13 +182,29 @@ fn crate_name(id: &str) -> String {
         .to_owned()
 }
 
-fn sync_file(
-    path: &std::path::Path,
+fn sync_managed_file(
+    path: &Path,
     content: &str,
-    changed_paths: &mut Vec<std::path::PathBuf>,
+    header: &str,
+    footer: &str,
+    changed_paths: &mut Vec<PathBuf>,
 ) -> Result<(), WorkspaceCommandError> {
-    if path.is_file() && fs::read_to_string(path)? == content {
-        return Ok(());
+    if path.exists() && !path.is_file() {
+        return Err(WorkspaceCommandError::GeneratedPathIsNotFile(
+            path.to_path_buf(),
+        ));
+    }
+
+    if path.is_file() {
+        let current = fs::read_to_string(path)?;
+        if current == content {
+            return Ok(());
+        }
+        if !is_managed_file(&current, header, footer) {
+            return Err(WorkspaceCommandError::UnmanagedGeneratedFile(
+                path.to_path_buf(),
+            ));
+        }
     }
 
     if let Some(parent) = path.parent() {
@@ -173,6 +214,41 @@ fn sync_file(
     fs::write(path, content)?;
     changed_paths.push(path.to_path_buf());
     Ok(())
+}
+
+fn sync_seed_file(
+    path: &Path,
+    content: &str,
+    legacy_content: &str,
+    changed_paths: &mut Vec<PathBuf>,
+) -> Result<(), WorkspaceCommandError> {
+    if path.exists() && !path.is_file() {
+        return Err(WorkspaceCommandError::GeneratedPathIsNotFile(
+            path.to_path_buf(),
+        ));
+    }
+
+    if path.is_file() {
+        let current = fs::read_to_string(path)?;
+        if current == content {
+            return Ok(());
+        }
+        if current != legacy_content {
+            return Ok(());
+        }
+    }
+
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    fs::write(path, content)?;
+    changed_paths.push(path.to_path_buf());
+    Ok(())
+}
+
+fn is_managed_file(content: &str, header: &str, footer: &str) -> bool {
+    content.starts_with(header) && content.ends_with(footer)
 }
 
 fn status_from_identity(identity: WorkspaceIdentity) -> WorkspaceStatusReport {

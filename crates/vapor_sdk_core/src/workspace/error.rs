@@ -23,6 +23,8 @@ pub enum WorkspaceCommandError {
     },
     MissingContentGraph,
     InvalidContentGraph(String),
+    UnmanagedGeneratedFile(PathBuf),
+    GeneratedPathIsNotFile(PathBuf),
     BuildFailedBeforeDeploy(ExitStatus),
     MissingBuiltExecutable(PathBuf),
     ExecutableHasNoFileName(PathBuf),
@@ -92,6 +94,16 @@ impl fmt::Display for WorkspaceCommandError {
             Self::InvalidContentGraph(reason) => {
                 write!(formatter, "invalid content graph: {reason}")
             }
+            Self::UnmanagedGeneratedFile(path) => write!(
+                formatter,
+                "refusing to overwrite unmanaged generated file `{}`",
+                path.display()
+            ),
+            Self::GeneratedPathIsNotFile(path) => write!(
+                formatter,
+                "generated path exists but is not a file: `{}`",
+                path.display()
+            ),
             Self::BuildFailedBeforeDeploy(status) => write!(
                 formatter,
                 "Vapor-managed cargo build failed before deploy with {status}"
@@ -122,6 +134,8 @@ impl Error for WorkspaceCommandError {
             | Self::WrongWorkspaceKind { .. }
             | Self::MissingContentGraph
             | Self::InvalidContentGraph(_)
+            | Self::UnmanagedGeneratedFile(_)
+            | Self::GeneratedPathIsNotFile(_)
             | Self::BuildFailedBeforeDeploy(_)
             | Self::MissingBuiltExecutable(_)
             | Self::ExecutableHasNoFileName(_) => None,
