@@ -1,4 +1,4 @@
-//! Toolchain install planning against the official Rust distribution manifest.
+//! Rustup invocation planning for the canonical Vapor toolchain.
 
 use std::error::Error;
 use std::fmt;
@@ -6,31 +6,19 @@ use std::path::PathBuf;
 
 use vapor_core::ToolchainComponent;
 
-use super::dist::{ChannelManifest, DistArchive, DistError};
-use super::{BOOTSTRAP_DOWNLOADS_DIR, ToolchainStatus, ToolchainStatusError, toolchain_status};
+use super::{ToolchainStatus, ToolchainStatusError, toolchain_status};
 
 /// Zero-mutation plan for installing the canonical Vapor Rust/Cargo toolchain.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ToolchainInstallPlan {
     pub status: ToolchainStatus,
-    pub manifest_url: String,
-    pub manifest_date: String,
-    pub download_root: PathBuf,
-    pub archives: Vec<ToolchainArchivePlan>,
+    pub rustup_path: PathBuf,
+    pub rustup_args: Vec<String>,
+    pub components: Vec<String>,
+    pub targets: Vec<String>,
 }
 
-/// One official Rust archive required by a toolchain install plan.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ToolchainArchivePlan {
-    pub component: ToolchainComponent,
-    pub package: String,
-    pub target: String,
-    pub url: String,
-    pub sha256: String,
-    pub download_path: PathBuf,
-}
-
-/// Build an install plan without downloading or unpacking any component archives.
+/// Build the Rustup command line without mutating local state.
 pub fn toolchain_install_plan() -> Result<ToolchainInstallPlan, ToolchainPlanError> {
     let status = toolchain_status()?;
 
@@ -40,119 +28,78 @@ pub fn toolchain_install_plan() -> Result<ToolchainInstallPlan, ToolchainPlanErr
         ));
     }
 
-    let (manifest_url, manifest) = ChannelManifest::fetch(&status.toolchain)?;
-    let download_root = status
-        .bootstrap_root
-        .join(BOOTSTRAP_DOWNLOADS_DIR)
-        .join(status.toolchain.identifier());
-    let mut archives = Vec::new();
+    let Some(rustup_path) = status.rustup_path.clone() else {
+        return Err(ToolchainPlanError::RustupUnavailable {
+            expected: status.local_rustup_path.clone(),
+        });
+    };
 
-    push_host_archive(
-        &mut archives,
-        &download_root,
-        &manifest,
-        ToolchainComponent::Rustc,
-        "rustc",
-        status.host_triple,
-    )?;
-    push_host_archive(
-        &mut archives,
-        &download_root,
-        &manifest,
-        ToolchainComponent::Cargo,
-        "cargo",
-        status.host_triple,
-    )?;
-    push_host_archive(
-        &mut archives,
-        &download_root,
-        &manifest,
-        ToolchainComponent::Rustfmt,
-        "rustfmt-preview",
-        status.host_triple,
-    )?;
-    push_host_archive(
-        &mut archives,
-        &download_root,
-        &manifest,
-        ToolchainComponent::Clippy,
-        "clippy-preview",
-        status.host_triple,
-    )?;
-
-    for target in status.supported_target_triples() {
-        push_host_archive(
-            &mut archives,
-            &download_root,
-            &manifest,
-            ToolchainComponent::RustStd,
-            "rust-std",
-            target,
-        )?;
-    }
-
-    push_host_archive(
-        &mut archives,
-        &download_root,
-        &manifest,
-        ToolchainComponent::RustSrc,
-        "rust-src",
-        "*",
-    )?;
+    let components = rustup_components(&status);
+    let targets = status
+        .supported_target_triples()
+        .iter()
+        .map(|target| (*target).to_owned())
+        .collect::<Vec<_>>();
+    let rustup_args = rustup_toolchain_install_args(&status, &components, &targets);
 
     Ok(ToolchainInstallPlan {
         status,
-        manifest_url,
-        manifest_date: manifest.date,
-        download_root,
-        archives,
+        rustup_path,
+        rustup_args,
+        components,
+        targets,
     })
 }
 
-fn push_host_archive(
-    archives: &mut Vec<ToolchainArchivePlan>,
-    download_root: &PathBuf,
-    manifest: &ChannelManifest,
-    component: ToolchainComponent,
-    package: &str,
-    target: &str,
-) -> Result<(), ToolchainPlanError> {
-    archives.push(archive_plan(
-        component,
-        download_root,
-        manifest.archive(package, target)?,
-    )?);
-    Ok(())
+fn rustup_components(status: &ToolchainStatus) -> Vec<String> {
+    status
+        .toolchain
+        .required_components()
+        .iter()
+        .filter_map(|component| match component {
+            ToolchainComponent::Rustfmt => Some("rustfmt"),
+            ToolchainComponent::Clippy => Some("clippy"),
+            ToolchainComponent::RustSrc => Some("rust-src"),
+            ToolchainComponent::Rustc | ToolchainComponent::Cargo | ToolchainComponent::RustStd => {
+                None
+            }
+        })
+        .map(str::to_owned)
+        .collect()
 }
 
-fn archive_plan(
-    component: ToolchainComponent,
-    download_root: &PathBuf,
-    archive: DistArchive,
-) -> Result<ToolchainArchivePlan, ToolchainPlanError> {
-    let file_name = archive
-        .url
-        .rsplit('/')
-        .next()
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| ToolchainPlanError::InvalidArchiveUrl(archive.url.clone()))?;
+fn rustup_toolchain_install_args(
+    status: &ToolchainStatus,
+    components: &[String],
+    targets: &[String],
+) -> Vec<String> {
+    let mut args = vec![
+        "toolchain".to_owned(),
+        "install".to_owned(),
+        status.toolchain.identifier(),
+        "--profile".to_owned(),
+        "minimal".to_owned(),
+        "--no-self-update".to_owned(),
+    ];
 
-    Ok(ToolchainArchivePlan {
-        component,
-        package: archive.package,
-        target: archive.target,
-        download_path: download_root.join(file_name),
-        url: archive.url,
-        sha256: archive.hash,
-    })
+    for component in components {
+        args.push("--component".to_owned());
+        args.push(component.clone());
+    }
+
+    for target in targets {
+        args.push("--target".to_owned());
+        args.push(target.clone());
+    }
+
+    args
 }
 
 #[derive(Debug)]
 pub enum ToolchainPlanError {
     Status(ToolchainStatusError),
-    Dist(DistError),
     UnsupportedHost(String),
-    InvalidArchiveUrl(String),
+    RustupUnavailable { expected: PathBuf },
 }
 
 impl From<ToolchainStatusError> for ToolchainPlanError {
@@ -161,24 +108,18 @@ impl From<ToolchainStatusError> for ToolchainPlanError {
     }
 }
 
-impl From<DistError> for ToolchainPlanError {
-    fn from(error: DistError) -> Self {
-        Self::Dist(error)
-    }
-}
-
 impl fmt::Display for ToolchainPlanError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Status(error) => write!(formatter, "{error}"),
-            Self::Dist(error) => write!(formatter, "{error}"),
             Self::UnsupportedHost(host) => write!(
                 formatter,
                 "host triple `{host}` is not supported by this Vapor toolchain pin"
             ),
-            Self::InvalidArchiveUrl(url) => write!(
+            Self::RustupUnavailable { expected } => write!(
                 formatter,
-                "official Rust archive URL has no filename: {url}"
+                "Rustup is not available; install or place it at `{}`",
+                expected.display()
             ),
         }
     }
@@ -188,8 +129,7 @@ impl Error for ToolchainPlanError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Status(error) => Some(error),
-            Self::Dist(error) => Some(error),
-            Self::UnsupportedHost(_) | Self::InvalidArchiveUrl(_) => None,
+            Self::UnsupportedHost(_) | Self::RustupUnavailable { .. } => None,
         }
     }
 }

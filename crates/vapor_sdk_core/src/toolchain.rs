@@ -1,6 +1,5 @@
-//! SDK-managed toolchain command intent and local status reporting.
+//! SDK-managed Rustup/Cargo command intent and local status reporting.
 
-mod dist;
 mod install;
 mod plan;
 
@@ -11,30 +10,26 @@ use std::path::{Path, PathBuf};
 
 use vapor_core::{CanonicalToolchain, ManifestError, canonical_toolchain, current_host_triple};
 
-pub use dist::DistError;
 pub use install::{ToolchainInstallError, ToolchainInstallReport, toolchain_install};
-
-pub use plan::{
-    ToolchainArchivePlan, ToolchainInstallPlan, ToolchainPlanError, toolchain_install_plan,
-};
+pub use plan::{ToolchainInstallPlan, ToolchainPlanError, toolchain_install_plan};
 
 /// Environment variable that overrides where Vapor stores executable-local state.
 pub const VAPOR_HOME_ENV: &str = "VAPOR_HOME";
 
-/// Directory under `VAPOR_HOME` that contains the single active Vapor Rust/Cargo toolchain.
-pub const RUST_TOOLCHAIN_DIR: &str = "rust-toolchain";
+/// Directory under `VAPOR_HOME` that contains the Rustup binary Vapor prefers.
+pub const RUSTUP_DIR: &str = "rustup";
 
-/// Directory under `VAPOR_HOME/rust-toolchain` that contains the active Rust/Cargo tree.
-pub const ACTIVE_TOOLCHAIN_DIR: &str = "active";
+/// Directory under `VAPOR_HOME/rustup` that contains the Rustup executable.
+pub const RUSTUP_BIN_DIR: &str = "bin";
 
-/// Directory under `VAPOR_HOME/rust-toolchain` used only while bootstrapping a toolchain.
-pub const TOOLCHAIN_BOOTSTRAP_DIR: &str = "bootstrap";
+/// Directory under `VAPOR_HOME` used as Rustup's managed home.
+pub const RUSTUP_HOME_DIR: &str = "rustup-home";
 
-/// Directory under `VAPOR_HOME/rust-toolchain/bootstrap` for official Rust archives.
-pub const BOOTSTRAP_DOWNLOADS_DIR: &str = "downloads";
+/// Directory under `VAPOR_HOME` used as Cargo's managed home.
+pub const CARGO_HOME_DIR: &str = "cargo-home";
 
-/// Directory under `VAPOR_HOME/rust-toolchain/bootstrap` for temporary assembly roots.
-pub const BOOTSTRAP_STAGING_DIR: &str = "staging";
+/// Directory under `VAPOR_HOME` reserved for Rustup acquisition/bootstrap state.
+pub const TOOLCHAIN_BOOTSTRAP_DIR: &str = "toolchain-bootstrap";
 
 /// Directory under `VAPOR_HOME` for SDK-managed build outputs.
 pub const OUTPUT_DIR: &str = "output";
@@ -58,11 +53,18 @@ pub struct ToolchainStatus {
     pub host_supported: bool,
     pub vapor_home_source: VaporHomeSource,
     pub vapor_home: PathBuf,
-    /// Root for all active and bootstrap toolchain state.
-    pub toolchain_home: PathBuf,
-    /// Single active Rust/Cargo toolchain root for this Vapor install.
+    /// App-local Rustup executable path Vapor prefers over PATH lookup.
+    pub local_rustup_path: PathBuf,
+    /// Rustup executable Vapor will invoke, if one is available.
+    pub rustup_path: Option<PathBuf>,
+    pub rustup_source: RustupSource,
+    /// Rustup home scoped to this Vapor install.
+    pub rustup_home: PathBuf,
+    /// Cargo home scoped to this Vapor install.
+    pub cargo_home: PathBuf,
+    /// Expected Rustup-managed toolchain root for the canonical pin and host.
     pub toolchain_root: PathBuf,
-    /// Toolchain-only bootstrap area for downloads and staging.
+    /// Reserved state for acquiring/updating the app-local Rustup binary.
     pub bootstrap_root: PathBuf,
     /// Stable output root for future build/package promotion.
     pub output_root: PathBuf,
@@ -99,9 +101,28 @@ impl VaporHomeSource {
     }
 }
 
+/// Where the Rustup executable came from for this process.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RustupSource {
+    VaporLocal,
+    PathLookup,
+    Unavailable,
+}
+
+impl RustupSource {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::VaporLocal => "vapor-local",
+            Self::PathLookup => "path",
+            Self::Unavailable => "unavailable",
+        }
+    }
+}
+
 /// Coarse local install state before real archive verification exists.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ToolchainInstallState {
+    MissingRustup,
     Missing,
     PresentUnverified,
     Broken { reason: String },
@@ -110,6 +131,7 @@ pub enum ToolchainInstallState {
 impl ToolchainInstallState {
     pub const fn as_str(&self) -> &'static str {
         match self {
+            Self::MissingRustup => "missing_rustup",
             Self::Missing => "missing",
             Self::PresentUnverified => "present_unverified",
             Self::Broken { .. } => "broken",
@@ -122,13 +144,23 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
     let toolchain = canonical_toolchain()?;
     let host_triple = current_host_triple();
     let (vapor_home_source, vapor_home) = vapor_home()?;
-    let toolchain_home = vapor_home.join(RUST_TOOLCHAIN_DIR);
-    let toolchain_root = toolchain_home.join(ACTIVE_TOOLCHAIN_DIR);
-    let bootstrap_root = toolchain_home.join(TOOLCHAIN_BOOTSTRAP_DIR);
+    let local_rustup_path = vapor_home
+        .join(RUSTUP_DIR)
+        .join(RUSTUP_BIN_DIR)
+        .join(executable_name("rustup"));
+    let (rustup_path, rustup_source) = resolve_rustup(&local_rustup_path);
+    let rustup_home = vapor_home.join(RUSTUP_HOME_DIR);
+    let cargo_home = vapor_home.join(CARGO_HOME_DIR);
+    let toolchain_root =
+        rustup_home
+            .join("toolchains")
+            .join(format!("{}-{}", toolchain.identifier(), host_triple));
+    let bootstrap_root = vapor_home.join(TOOLCHAIN_BOOTSTRAP_DIR);
     let output_root = vapor_home.join(OUTPUT_DIR);
     let cargo_path = toolchain_root.join("bin").join(executable_name("cargo"));
     let rustc_path = toolchain_root.join("bin").join(executable_name("rustc"));
-    let install_state = inspect_install_state(&toolchain_root, &cargo_path, &rustc_path);
+    let install_state =
+        inspect_install_state(&rustup_path, &toolchain_root, &cargo_path, &rustc_path);
 
     Ok(ToolchainStatus {
         host_supported: toolchain.supports_host(host_triple),
@@ -136,7 +168,11 @@ pub fn toolchain_status() -> Result<ToolchainStatus, ToolchainStatusError> {
         host_triple,
         vapor_home_source,
         vapor_home,
-        toolchain_home,
+        local_rustup_path,
+        rustup_path,
+        rustup_source,
+        rustup_home,
+        cargo_home,
         toolchain_root,
         bootstrap_root,
         output_root,
@@ -173,11 +209,39 @@ fn executable_name(stem: &str) -> String {
     format!("{stem}{}", env::consts::EXE_SUFFIX)
 }
 
+fn resolve_rustup(local_rustup_path: &Path) -> (Option<PathBuf>, RustupSource) {
+    if local_rustup_path.is_file() {
+        return (
+            Some(local_rustup_path.to_path_buf()),
+            RustupSource::VaporLocal,
+        );
+    }
+
+    let Some(path) = env::var_os("PATH") else {
+        return (None, RustupSource::Unavailable);
+    };
+
+    let rustup_name = executable_name("rustup");
+    for root in env::split_paths(&path) {
+        let candidate = root.join(&rustup_name);
+        if candidate.is_file() {
+            return (Some(candidate), RustupSource::PathLookup);
+        }
+    }
+
+    (None, RustupSource::Unavailable)
+}
+
 fn inspect_install_state(
+    rustup_path: &Option<PathBuf>,
     toolchain_root: &Path,
     cargo_path: &Path,
     rustc_path: &Path,
 ) -> ToolchainInstallState {
+    if rustup_path.is_none() {
+        return ToolchainInstallState::MissingRustup;
+    }
+
     if !toolchain_root.exists() {
         return ToolchainInstallState::Missing;
     }

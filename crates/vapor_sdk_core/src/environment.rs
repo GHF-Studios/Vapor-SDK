@@ -6,14 +6,10 @@
 
 use std::path::PathBuf;
 
-use crate::toolchain::{ToolchainStatusError, toolchain_status};
+use crate::toolchain::{RUSTUP_BIN_DIR, RUSTUP_DIR, ToolchainStatusError, toolchain_status};
 
-const CARGO_HOME_DIR: &str = "cargo-home";
-const RUSTUP_HOME_DIR: &str = "rustup-home";
 const STEAM_HOME_DIR: &str = "steam";
 const STEAMCMD_DIR: &str = "steamcmd";
-const RUST_TOOLCHAIN_ACTIVE_BIN: &str = "rust-toolchain/active/bin";
-const RUSTUP_BIN: &str = "rustup/bin";
 const BIN_DIR: &str = "bin";
 
 /// Environment commands for app-root shell/tool discovery.
@@ -38,17 +34,21 @@ pub struct EnvironmentReport {
 pub fn environment_status() -> Result<EnvironmentReport, ToolchainStatusError> {
     let toolchain = toolchain_status()?;
     let vapor_home = toolchain.vapor_home;
+    let cargo_bin = toolchain.cargo_home.join(BIN_DIR);
+    let toolchain_bin = toolchain.toolchain_root.join(BIN_DIR);
+    let rustup_bin = vapor_home.join(RUSTUP_DIR).join(RUSTUP_BIN_DIR);
 
     Ok(EnvironmentReport {
         activation_script: vapor_home.join(activation_script_name()),
-        cargo_home: vapor_home.join(CARGO_HOME_DIR),
-        rustup_home: vapor_home.join(RUSTUP_HOME_DIR),
+        cargo_home: toolchain.cargo_home,
+        rustup_home: toolchain.rustup_home,
         steam_home: vapor_home.join(STEAM_HOME_DIR),
         path_entries: vec![
             vapor_home.clone(),
             vapor_home.join(BIN_DIR),
-            vapor_home.join(RUST_TOOLCHAIN_ACTIVE_BIN),
-            vapor_home.join(RUSTUP_BIN),
+            toolchain_bin,
+            cargo_bin,
+            rustup_bin,
             vapor_home.join(STEAM_HOME_DIR).join(STEAMCMD_DIR),
         ],
         vapor_home,

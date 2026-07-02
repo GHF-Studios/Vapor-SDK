@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::GlobalOptions;
+use crate::toolchain::ToolchainStatus;
 
 use super::cargo::VaporCargo;
 use super::error::WorkspaceCommandError;
@@ -35,7 +36,7 @@ pub(super) fn workspace_deploy(
 
     promote_file(&source_executable, &deployed_executable)?;
     promote_alias(&deployed_executable, &alias_executable)?;
-    write_activation_script(&cargo.toolchain.vapor_home, &activation_script)?;
+    write_activation_script(&cargo.toolchain, &activation_script)?;
 
     Ok(WorkspaceDeployReport {
         build,
@@ -190,12 +191,14 @@ fn activation_script_name() -> &'static str {
 
 #[cfg(windows)]
 fn write_activation_script(
-    vapor_home: &Path,
+    toolchain: &ToolchainStatus,
     destination: &Path,
 ) -> Result<(), WorkspaceCommandError> {
     let content = format!(
-        "@echo off\r\nset \"VAPOR_HOME={}\"\r\nset \"CARGO_HOME=%VAPOR_HOME%\\cargo-home\"\r\nset \"RUSTUP_HOME=%VAPOR_HOME%\\rustup-home\"\r\nset \"VAPOR_STEAM_HOME=%VAPOR_HOME%\\steam\"\r\nset \"PATH=%VAPOR_HOME%;%VAPOR_HOME%\\bin;%VAPOR_HOME%\\rust-toolchain\\active\\bin;%VAPOR_HOME%\\rustup\\bin;%VAPOR_HOME%\\steam\\steamcmd;%PATH%\"\r\n",
-        vapor_home.display()
+        "@echo off\r\nset \"VAPOR_HOME=%~dp0\"\r\nif \"%VAPOR_HOME:~-1%\"==\"\\\" set \"VAPOR_HOME=%VAPOR_HOME:~0,-1%\"\r\nset \"CARGO_HOME=%VAPOR_HOME%\\cargo-home\"\r\nset \"RUSTUP_HOME=%VAPOR_HOME%\\rustup-home\"\r\nset \"RUSTUP_TOOLCHAIN={}\"\r\nset \"VAPOR_STEAM_HOME=%VAPOR_HOME%\\steam\"\r\nset \"PATH=%VAPOR_HOME%;%VAPOR_HOME%\\bin;%RUSTUP_HOME%\\toolchains\\{}-{}\\bin;%VAPOR_HOME%\\cargo-home\\bin;%VAPOR_HOME%\\rustup\\bin;%VAPOR_HOME%\\steam\\steamcmd;%PATH%\"\r\n",
+        toolchain.toolchain.identifier(),
+        toolchain.toolchain.identifier(),
+        toolchain.host_triple
     );
     fs::write(destination, content)?;
     Ok(())
@@ -203,31 +206,38 @@ fn write_activation_script(
 
 #[cfg(not(windows))]
 fn write_activation_script(
-    _vapor_home: &Path,
+    toolchain: &ToolchainStatus,
     destination: &Path,
 ) -> Result<(), WorkspaceCommandError> {
-    let content = r#"# Source this file from the Vapor app root: . ./vapor_env.sh
-VAPOR_HOME=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)
+    let content = format!(
+        r#"# Source this file from the Vapor app root: . ./vapor_env.sh
+VAPOR_HOME=$(CDPATH= cd -- "$(dirname -- "${{BASH_SOURCE:-$0}}")" && pwd)
 export VAPOR_HOME
 export CARGO_HOME="$VAPOR_HOME/cargo-home"
 export RUSTUP_HOME="$VAPOR_HOME/rustup-home"
+export RUSTUP_TOOLCHAIN="{}"
 export VAPOR_STEAM_HOME="$VAPOR_HOME/steam"
 
-vapor_prepend_path() {
+vapor_prepend_path() {{
     case ":$PATH:" in
         *":$1:"*) ;;
-        *) PATH="$1${PATH:+:$PATH}" ;;
+        *) PATH="$1${{PATH:+:$PATH}}" ;;
     esac
-}
+}}
 
 vapor_prepend_path "$VAPOR_HOME/steam/steamcmd"
 vapor_prepend_path "$VAPOR_HOME/rustup/bin"
-vapor_prepend_path "$VAPOR_HOME/rust-toolchain/active/bin"
+vapor_prepend_path "$RUSTUP_HOME/toolchains/{}-{}/bin"
+vapor_prepend_path "$VAPOR_HOME/cargo-home/bin"
 vapor_prepend_path "$VAPOR_HOME/bin"
 vapor_prepend_path "$VAPOR_HOME"
 export PATH
 unset -f vapor_prepend_path
-"#;
+"#,
+        toolchain.toolchain.identifier(),
+        toolchain.toolchain.identifier(),
+        toolchain.host_triple
+    );
     fs::write(destination, content)?;
 
     let mut permissions = fs::metadata(destination)?.permissions();

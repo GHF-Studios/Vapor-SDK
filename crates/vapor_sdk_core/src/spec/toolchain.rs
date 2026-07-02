@@ -14,13 +14,16 @@ pub(super) fn describe(command: &ToolchainCommand) -> CommandSpec {
         ),
         ToolchainCommand::Install => spec(
             "sdk toolchain install",
-            "Install the pinned Rust/Cargo toolchain.",
+            "Install the pinned Rust/Cargo toolchain through Rustup.",
             StateSurface::Toolchain,
-            &["toolchain pin is known"],
             &[
-                "download official Rust archives",
-                "verify archive hashes",
-                "promote staged toolchain",
+                "toolchain pin is known",
+                "Rustup is available from VAPOR_HOME/rustup/bin or PATH",
+            ],
+            &[
+                "invoke Rustup with Vapor-owned RUSTUP_HOME and CARGO_HOME",
+                "install required components and target standard libraries",
+                "leave Rustup responsible for Rust distribution details",
             ],
         ),
         ToolchainCommand::Repair => spec(

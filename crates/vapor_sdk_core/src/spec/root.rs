@@ -15,7 +15,7 @@ pub(super) fn describe(command: &RootCommand) -> CommandSpec {
             "Assemble the Steam redistributable root package and SteamPipe app build script.",
             StateSurface::RootRelease,
             &[
-                "the SDK executable root must contain bin/ and rust-toolchain/active/",
+                "the SDK executable root must contain bin/ and Vapor activation script(s)",
                 "the package output is generated under the SDK executable root output/ directory",
                 "cargo-home/ and output/ are never included in the Steam redistributable content",
             ],

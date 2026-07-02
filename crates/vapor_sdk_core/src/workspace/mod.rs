@@ -44,21 +44,21 @@ pub fn workspace_sync(
     manage::workspace_sync(globals)
 }
 
-/// Run `cargo check --workspace` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+/// Run `cargo check --workspace` through Vapor-owned Rustup/Cargo state.
 pub fn workspace_check(
     globals: &GlobalOptions,
 ) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
     cargo::VaporCargo::new(globals)?.run(&["check", "--workspace"])
 }
 
-/// Run `cargo fmt` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+/// Run `cargo fmt` through Vapor-owned Rustup/Cargo state.
 pub fn workspace_fmt(
     globals: &GlobalOptions,
 ) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
     cargo::VaporCargo::new(globals)?.run(&["fmt"])
 }
 
-/// Run `cargo build --workspace` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+/// Run `cargo build --workspace` through Vapor-owned Rustup/Cargo state.
 pub fn workspace_build(
     globals: &GlobalOptions,
 ) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {

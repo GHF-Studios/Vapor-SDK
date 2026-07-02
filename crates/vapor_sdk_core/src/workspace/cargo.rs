@@ -10,7 +10,6 @@ use super::error::WorkspaceCommandError;
 use super::identity::{WorkspaceIdentity, discover_workspace_identity};
 use super::report::WorkspaceCargoReport;
 
-const CARGO_HOME_DIR: &str = "cargo-home";
 const DEV_OUTPUT_DIR: &str = "dev";
 
 #[derive(Debug, Clone)]
@@ -25,7 +24,7 @@ impl VaporCargo {
     pub(super) fn new(globals: &GlobalOptions) -> Result<Self, WorkspaceCommandError> {
         let toolchain = checked_toolchain_status()?;
         let identity = discover_workspace_identity(globals)?;
-        let cargo_home = toolchain.vapor_home.join(CARGO_HOME_DIR);
+        let cargo_home = toolchain.cargo_home.clone();
         let target_dir = toolchain
             .output_root
             .join(DEV_OUTPUT_DIR)
@@ -45,12 +44,11 @@ impl VaporCargo {
             .args(args)
             .current_dir(&self.identity.workspace_root)
             .env("CARGO_HOME", &self.cargo_home)
+            .env("RUSTUP_HOME", &self.toolchain.rustup_home)
+            .env("RUSTUP_TOOLCHAIN", self.toolchain.toolchain.identifier())
             .env("CARGO_TARGET_DIR", &self.target_dir)
-            .env("RUSTC", &self.toolchain.rustc_path)
-            .env_remove("RUSTUP_HOME")
-            .env_remove("RUSTUP_TOOLCHAIN")
             .env_remove("RUSTC_WRAPPER")
-            .env("PATH", vapor_path_prefix(&self.toolchain.cargo_path)?);
+            .env("PATH", vapor_path_prefix(&self.toolchain)?);
 
         let status = command.status()?;
 
@@ -123,11 +121,20 @@ fn checked_toolchain_status() -> Result<ToolchainStatus, WorkspaceCommandError> 
     Ok(toolchain)
 }
 
-fn vapor_path_prefix(cargo_path: &PathBuf) -> Result<OsString, WorkspaceCommandError> {
-    let bin_dir = cargo_path
+fn vapor_path_prefix(toolchain: &ToolchainStatus) -> Result<OsString, WorkspaceCommandError> {
+    let cargo_bin_dir = toolchain
+        .cargo_path
         .parent()
-        .ok_or_else(|| WorkspaceCommandError::CargoPathHasNoParent(cargo_path.clone()))?;
-    let mut paths = vec![bin_dir.to_path_buf()];
+        .ok_or_else(|| WorkspaceCommandError::CargoPathHasNoParent(toolchain.cargo_path.clone()))?;
+    let mut paths = vec![cargo_bin_dir.to_path_buf()];
+
+    if let Some(rustup_bin_dir) = toolchain
+        .rustup_path
+        .as_ref()
+        .and_then(|path| path.parent())
+    {
+        paths.push(rustup_bin_dir.to_path_buf());
+    }
 
     if let Some(existing) = env::var_os("PATH") {
         paths.extend(env::split_paths(&existing));

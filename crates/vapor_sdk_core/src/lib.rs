@@ -29,11 +29,11 @@ pub use repair::{RepairCommand, RepairTarget};
 pub use spec::{CommandSpec, StateSurface, describe_command};
 pub use template::TemplateCommand;
 pub use toolchain::{
-    ACTIVE_TOOLCHAIN_DIR, BOOTSTRAP_DOWNLOADS_DIR, BOOTSTRAP_STAGING_DIR, DistError, OUTPUT_DIR,
-    RUST_TOOLCHAIN_DIR, TOOLCHAIN_BOOTSTRAP_DIR, ToolchainArchivePlan, ToolchainCommand,
-    ToolchainInstallError, ToolchainInstallPlan, ToolchainInstallReport, ToolchainInstallState,
-    ToolchainPlanError, ToolchainStatus, ToolchainStatusError, VAPOR_HOME_ENV, VaporHomeSource,
-    toolchain_install, toolchain_install_plan, toolchain_status,
+    CARGO_HOME_DIR, OUTPUT_DIR, RUSTUP_BIN_DIR, RUSTUP_DIR, RUSTUP_HOME_DIR, RustupSource,
+    TOOLCHAIN_BOOTSTRAP_DIR, ToolchainCommand, ToolchainInstallError, ToolchainInstallPlan,
+    ToolchainInstallReport, ToolchainInstallState, ToolchainPlanError, ToolchainStatus,
+    ToolchainStatusError, VAPOR_HOME_ENV, VaporHomeSource, toolchain_install,
+    toolchain_install_plan, toolchain_status,
 };
 pub use vapor_core::ChildContentRef;
 pub use workspace::{
