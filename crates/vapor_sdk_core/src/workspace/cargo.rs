@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::Command;
 
+use crate::GlobalOptions;
 use crate::toolchain::{ToolchainInstallState, ToolchainStatus, toolchain_status};
 
 use super::error::WorkspaceCommandError;
@@ -21,11 +22,14 @@ pub(super) struct VaporCargo {
 }
 
 impl VaporCargo {
-    pub(super) fn new() -> Result<Self, WorkspaceCommandError> {
+    pub(super) fn new(globals: &GlobalOptions) -> Result<Self, WorkspaceCommandError> {
         let toolchain = checked_toolchain_status()?;
-        let identity = discover_workspace_identity()?;
+        let identity = discover_workspace_identity(globals)?;
         let cargo_home = toolchain.vapor_home.join(CARGO_HOME_DIR);
-        let target_dir = toolchain.output_root.join(DEV_OUTPUT_DIR);
+        let target_dir = toolchain
+            .output_root
+            .join(DEV_OUTPUT_DIR)
+            .join(workspace_output_name(&identity));
 
         Ok(Self {
             toolchain,
@@ -63,6 +67,38 @@ impl VaporCargo {
             cargo_args: args.iter().map(|arg| (*arg).to_owned()).collect(),
             status,
         })
+    }
+}
+
+fn workspace_output_name(identity: &WorkspaceIdentity) -> String {
+    let raw = identity
+        .id
+        .as_deref()
+        .or_else(|| {
+            identity
+                .workspace_root
+                .file_name()
+                .and_then(|value| value.to_str())
+        })
+        .unwrap_or("workspace");
+
+    let name = raw
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() {
+                character.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_owned();
+
+    if name.is_empty() {
+        "workspace".to_owned()
+    } else {
+        name
     }
 }
 

@@ -12,26 +12,26 @@ pub(crate) fn print_command(
     command: &SdkCommand,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let spec = vapor_sdk_core::describe_command(command);
-    crate::safety::guard(globals, command, &spec)?;
+    crate::safety::guard(&globals, command, &spec)?;
 
     match command {
         SdkCommand::Workspace(WorkspaceCommand::Status) => {
-            print_workspace_status(globals, spec, workspace_status()?)
+            print_workspace_status(globals.clone(), spec, workspace_status(&globals)?)
         }
         SdkCommand::Workspace(WorkspaceCommand::Sync) => {
-            print_workspace_sync(globals, spec, workspace_sync()?)
+            print_workspace_sync(globals.clone(), spec, workspace_sync(&globals)?)
         }
         SdkCommand::Workspace(WorkspaceCommand::Check) => {
-            print_workspace_cargo(globals, spec, workspace_check()?)
+            print_workspace_cargo(globals.clone(), spec, workspace_check(&globals)?)
         }
         SdkCommand::Workspace(WorkspaceCommand::Fmt) => {
-            print_workspace_cargo(globals, spec, workspace_fmt()?)
+            print_workspace_cargo(globals.clone(), spec, workspace_fmt(&globals)?)
         }
         SdkCommand::Workspace(WorkspaceCommand::Build) => {
-            print_workspace_cargo(globals, spec, workspace_build()?)
+            print_workspace_cargo(globals.clone(), spec, workspace_build(&globals)?)
         }
         SdkCommand::Workspace(WorkspaceCommand::Deploy) => {
-            print_workspace_deploy(globals, spec, workspace_deploy()?)
+            print_workspace_deploy(globals.clone(), spec, workspace_deploy(&globals)?)
         }
         SdkCommand::Toolchain(ToolchainCommand::Status) => print_toolchain_status(globals, spec),
         SdkCommand::Toolchain(ToolchainCommand::Install) => print_toolchain_install(globals, spec),

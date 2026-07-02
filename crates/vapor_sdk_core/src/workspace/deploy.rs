@@ -2,6 +2,8 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::GlobalOptions;
+
 use super::cargo::VaporCargo;
 use super::error::WorkspaceCommandError;
 use super::identity::require_current_repo_kind;
@@ -12,10 +14,12 @@ const SDK_CLI_ALIAS: &str = "sdk_cli";
 const SDK_CLI_PACKAGE: &str = "vapor_sdk_cli";
 const SDK_REPO_KIND: &str = "sdk";
 
-pub(super) fn workspace_deploy() -> Result<WorkspaceDeployReport, WorkspaceCommandError> {
-    require_current_repo_kind(SDK_REPO_KIND)?;
+pub(super) fn workspace_deploy(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceDeployReport, WorkspaceCommandError> {
+    require_current_repo_kind(globals, SDK_REPO_KIND)?;
 
-    let cargo = VaporCargo::new()?;
+    let cargo = VaporCargo::new(globals)?;
     let build = cargo.run(&["build", "-p", SDK_CLI_PACKAGE])?;
 
     if !build.status.success() {

@@ -7,6 +7,7 @@ mod identity;
 mod manage;
 mod report;
 
+use crate::GlobalOptions;
 pub use error::WorkspaceCommandError;
 pub use report::{
     WorkspaceCargoReport, WorkspaceDeployReport, WorkspaceStatusReport, WorkspaceSyncReport,
@@ -30,31 +31,43 @@ pub enum WorkspaceCommand {
 }
 
 /// Inspect the current Vapor workspace identity and managed structure.
-pub fn workspace_status() -> Result<WorkspaceStatusReport, WorkspaceCommandError> {
-    manage::workspace_status()
+pub fn workspace_status(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceStatusReport, WorkspaceCommandError> {
+    manage::workspace_status(globals)
 }
 
 /// Create or update SDK-managed workspace structure.
-pub fn workspace_sync() -> Result<WorkspaceSyncReport, WorkspaceCommandError> {
-    manage::workspace_sync()
+pub fn workspace_sync(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceSyncReport, WorkspaceCommandError> {
+    manage::workspace_sync(globals)
 }
 
-/// Run `cargo check --workspace` through `$VAPOR_HOME/toolchain/active/bin/cargo`.
-pub fn workspace_check() -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
-    cargo::VaporCargo::new()?.run(&["check", "--workspace"])
+/// Run `cargo check --workspace` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+pub fn workspace_check(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
+    cargo::VaporCargo::new(globals)?.run(&["check", "--workspace"])
 }
 
-/// Run `cargo fmt` through `$VAPOR_HOME/toolchain/active/bin/cargo`.
-pub fn workspace_fmt() -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
-    cargo::VaporCargo::new()?.run(&["fmt"])
+/// Run `cargo fmt` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+pub fn workspace_fmt(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
+    cargo::VaporCargo::new(globals)?.run(&["fmt"])
 }
 
-/// Run `cargo build --workspace` through `$VAPOR_HOME/toolchain/active/bin/cargo`.
-pub fn workspace_build() -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
-    cargo::VaporCargo::new()?.run(&["build", "--workspace"])
+/// Run `cargo build --workspace` through `$VAPOR_HOME/rust-toolchain/active/bin/cargo`.
+pub fn workspace_build(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
+    cargo::VaporCargo::new(globals)?.run(&["build", "--workspace"])
 }
 
 /// Build and promote `vapor_sdk_cli` into `$VAPOR_HOME/bin`.
-pub fn workspace_deploy() -> Result<WorkspaceDeployReport, WorkspaceCommandError> {
-    deploy::workspace_deploy()
+pub fn workspace_deploy(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceDeployReport, WorkspaceCommandError> {
+    deploy::workspace_deploy(globals)
 }

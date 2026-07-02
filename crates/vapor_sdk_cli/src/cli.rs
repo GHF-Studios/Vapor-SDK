@@ -13,6 +13,7 @@ use leaf::LeafCommand;
 use pack::PackCommand;
 use packagepack::PackagepackCommand;
 use repair::RepairCommand;
+use std::path::PathBuf;
 use template::TemplateCommand;
 use toolchain::ToolchainCommand;
 use vapor_sdk_core as core;
@@ -33,6 +34,9 @@ use vapor_sdk_core as core;
     propagate_version = true
 )]
 pub(crate) struct Cli {
+    /// Operate on a workspace/repo outside the current shell directory.
+    #[arg(long, value_name = "PATH", help_heading = "Workspace Targeting")]
+    workspace: Option<PathBuf>,
     /// Show operation planning, diagnostics, historical context, and live detail.
     #[arg(long, help_heading = "Output")]
     verbose: bool,
@@ -55,6 +59,7 @@ pub(crate) struct Cli {
 impl Cli {
     pub(crate) fn into_parts(self) -> (core::GlobalOptions, core::SdkCommand) {
         let globals = core::GlobalOptions {
+            workspace: self.workspace,
             verbose: self.verbose,
             yes: self.yes,
             force: self.force,

@@ -45,7 +45,7 @@ impl fmt::Display for SafetyError {
 impl Error for SafetyError {}
 
 pub(crate) fn guard(
-    globals: GlobalOptions,
+    globals: &GlobalOptions,
     command: &SdkCommand,
     spec: &CommandSpec,
 ) -> Result<(), Box<dyn Error>> {
@@ -82,7 +82,7 @@ pub(crate) fn guard(
     Ok(())
 }
 
-fn confirm(globals: GlobalOptions, spec: &CommandSpec) -> Result<(), Box<dyn Error>> {
+fn confirm(globals: &GlobalOptions, spec: &CommandSpec) -> Result<(), Box<dyn Error>> {
     if globals.force {
         eprintln!(
             "{} {}",

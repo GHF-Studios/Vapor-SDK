@@ -1,7 +1,9 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use toml::Value;
+
+use crate::GlobalOptions;
 
 use super::error::WorkspaceCommandError;
 
@@ -13,9 +15,11 @@ pub(super) struct WorkspaceIdentity {
     pub(super) id: Option<String>,
 }
 
-pub(super) fn discover_workspace_identity() -> Result<WorkspaceIdentity, WorkspaceCommandError> {
+pub(super) fn discover_workspace_identity(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceIdentity, WorkspaceCommandError> {
     let invocation_directory = env::current_dir()?;
-    let mut candidate = invocation_directory.clone();
+    let mut candidate = workspace_search_start(&invocation_directory, globals)?;
 
     loop {
         let manifest_path = candidate.join("Vapor.toml");
@@ -49,9 +53,10 @@ pub(super) fn discover_workspace_identity() -> Result<WorkspaceIdentity, Workspa
 }
 
 pub(super) fn require_current_repo_kind(
+    globals: &GlobalOptions,
     expected: &str,
 ) -> Result<WorkspaceIdentity, WorkspaceCommandError> {
-    let identity = discover_workspace_identity()?;
+    let identity = discover_workspace_identity(globals)?;
 
     if identity.kind.as_deref() == Some(expected) {
         Ok(identity)
@@ -60,5 +65,20 @@ pub(super) fn require_current_repo_kind(
             expected: expected.to_owned(),
             actual: identity.kind,
         })
+    }
+}
+
+fn workspace_search_start(
+    invocation_directory: &Path,
+    globals: &GlobalOptions,
+) -> Result<PathBuf, WorkspaceCommandError> {
+    let Some(workspace) = &globals.workspace else {
+        return Ok(invocation_directory.to_path_buf());
+    };
+
+    if workspace.is_absolute() {
+        Ok(workspace.clone())
+    } else {
+        Ok(invocation_directory.join(workspace))
     }
 }

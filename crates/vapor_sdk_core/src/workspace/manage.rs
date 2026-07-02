@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 use vapor_core::ContentType;
 
+use crate::GlobalOptions;
+
 use super::error::WorkspaceCommandError;
 use super::identity::{WorkspaceIdentity, discover_workspace_identity, require_current_repo_kind};
 use super::report::{WorkspaceStatusReport, WorkspaceSyncReport};
@@ -30,12 +32,16 @@ struct ContentEntry {
     id: String,
 }
 
-pub(super) fn workspace_status() -> Result<WorkspaceStatusReport, WorkspaceCommandError> {
-    Ok(status_from_identity(discover_workspace_identity()?))
+pub(super) fn workspace_status(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceStatusReport, WorkspaceCommandError> {
+    Ok(status_from_identity(discover_workspace_identity(globals)?))
 }
 
-pub(super) fn workspace_sync() -> Result<WorkspaceSyncReport, WorkspaceCommandError> {
-    let identity = require_current_repo_kind(CUSTOM_CONTENT_KIND)?;
+pub(super) fn workspace_sync(
+    globals: &GlobalOptions,
+) -> Result<WorkspaceSyncReport, WorkspaceCommandError> {
+    let identity = require_current_repo_kind(globals, CUSTOM_CONTENT_KIND)?;
     let content = read_content_graph(&identity)?;
     let mut changed_paths = Vec::new();
     let cargo_manifest = identity.workspace_root.join("Cargo.toml");

@@ -1,8 +1,12 @@
 //! Global command options shared by every SDK surface.
 
+use std::path::PathBuf;
+
 /// Global execution knobs accepted by every SDK command.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct GlobalOptions {
+    /// Explicit workspace/repo path a workspace command should operate on.
+    pub workspace: Option<PathBuf>,
     /// Print operation planning, diagnostics, historical context, and live detail.
     pub verbose: bool,
     /// Accept non-destructive interactive prompts.
