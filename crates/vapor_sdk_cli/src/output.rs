@@ -78,6 +78,19 @@ fn print_workspace_deploy(
 }
 
 fn print_workspace_cargo_report(report: &WorkspaceCargoReport) {
+    println!(
+        "invocation_directory: {}",
+        report.invocation_directory.display()
+    );
+    println!("workspace_root: {}", report.workspace_root.display());
+    println!(
+        "workspace_kind: {}",
+        report.workspace_kind.as_deref().unwrap_or("none")
+    );
+    println!(
+        "workspace_id: {}",
+        report.workspace_id.as_deref().unwrap_or("none")
+    );
     println!("working_directory: {}", report.working_directory.display());
     println!("cargo: {}", report.cargo_path.display());
     println!("rustc: {}", report.rustc_path.display());

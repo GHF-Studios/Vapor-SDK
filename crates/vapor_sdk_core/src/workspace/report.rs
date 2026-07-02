@@ -4,6 +4,10 @@ use std::process::ExitStatus;
 /// Result of running one Vapor-managed Cargo command.
 #[derive(Debug, Clone)]
 pub struct WorkspaceCargoReport {
+    pub invocation_directory: PathBuf,
+    pub workspace_root: PathBuf,
+    pub workspace_kind: Option<String>,
+    pub workspace_id: Option<String>,
     pub working_directory: PathBuf,
     pub cargo_path: PathBuf,
     pub rustc_path: PathBuf,

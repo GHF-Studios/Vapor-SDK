@@ -6,6 +6,7 @@ use std::process::Command;
 use crate::toolchain::{ToolchainInstallState, ToolchainStatus, toolchain_status};
 
 use super::error::WorkspaceCommandError;
+use super::identity::{WorkspaceIdentity, discover_workspace_identity};
 use super::report::WorkspaceCargoReport;
 
 const CARGO_HOME_DIR: &str = "cargo";
@@ -15,28 +16,30 @@ const CARGO_TARGET_DIR: &str = "cargo-target";
 pub(super) struct VaporCargo {
     pub(super) toolchain: ToolchainStatus,
     pub(super) target_dir: PathBuf,
+    pub(super) identity: WorkspaceIdentity,
     cargo_home: PathBuf,
 }
 
 impl VaporCargo {
     pub(super) fn new() -> Result<Self, WorkspaceCommandError> {
         let toolchain = checked_toolchain_status()?;
+        let identity = discover_workspace_identity()?;
         let cargo_home = toolchain.vapor_home.join(CARGO_HOME_DIR);
         let target_dir = toolchain.output_root.join(CARGO_TARGET_DIR);
 
         Ok(Self {
             toolchain,
+            identity,
             cargo_home,
             target_dir,
         })
     }
 
     pub(super) fn run(&self, args: &[&str]) -> Result<WorkspaceCargoReport, WorkspaceCommandError> {
-        let working_directory = env::current_dir()?;
         let mut command = Command::new(&self.toolchain.cargo_path);
         command
             .args(args)
-            .current_dir(&working_directory)
+            .current_dir(&self.identity.workspace_root)
             .env("CARGO_HOME", &self.cargo_home)
             .env("CARGO_TARGET_DIR", &self.target_dir)
             .env("RUSTC", &self.toolchain.rustc_path)
@@ -48,7 +51,11 @@ impl VaporCargo {
         let status = command.status()?;
 
         Ok(WorkspaceCargoReport {
-            working_directory,
+            invocation_directory: self.identity.invocation_directory.clone(),
+            workspace_root: self.identity.workspace_root.clone(),
+            workspace_kind: self.identity.kind.clone(),
+            workspace_id: self.identity.id.clone(),
+            working_directory: self.identity.workspace_root.clone(),
             cargo_path: self.toolchain.cargo_path.clone(),
             rustc_path: self.toolchain.rustc_path.clone(),
             cargo_home: self.cargo_home.clone(),

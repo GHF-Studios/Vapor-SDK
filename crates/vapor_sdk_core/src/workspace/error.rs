@@ -73,9 +73,11 @@ impl fmt::Display for WorkspaceCommandError {
                 "Vapor cargo path has no parent directory: `{}`",
                 path.display()
             ),
-            Self::MissingWorkspaceManifest(path) => {
-                write!(formatter, "missing workspace manifest `{}`", path.display())
-            }
+            Self::MissingWorkspaceManifest(path) => write!(
+                formatter,
+                "no Vapor.toml found at or above `{}`",
+                path.display()
+            ),
             Self::WrongWorkspaceKind { expected, actual } => write!(
                 formatter,
                 "workspace kind must be `{expected}`, found `{}`",
