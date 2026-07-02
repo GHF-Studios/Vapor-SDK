@@ -1,6 +1,7 @@
 //! Human-readable SDK command specifications for current stub handlers.
 
 mod content;
+mod environment;
 mod repair;
 mod root;
 mod steam;
@@ -14,6 +15,7 @@ use crate::commands::SdkCommand;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StateSurface {
     ReadOnly,
+    Environment,
     RepairPlan,
     RepairApply,
     Toolchain,
@@ -52,6 +54,7 @@ pub fn describe_command(command: &SdkCommand) -> CommandSpec {
             &[],
             &["display toolchain, template, and project state"],
         ),
+        SdkCommand::Environment(command) => environment::describe(command),
         SdkCommand::Root(command) => root::describe(command),
         SdkCommand::Steam(command) => steam::describe(command),
         SdkCommand::Workspace(command) => workspace::describe(command),

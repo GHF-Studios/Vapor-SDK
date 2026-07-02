@@ -8,6 +8,7 @@
 
 pub mod commands;
 pub mod content;
+pub mod environment;
 pub mod options;
 pub mod repair;
 pub mod root;
@@ -22,6 +23,7 @@ pub use commands::{
     SdkCommand, SourceAuthoringCommand,
 };
 pub use content::{ContentSource, ContentType, allowed_pack_children};
+pub use environment::{EnvironmentCommand, EnvironmentReport, environment_status};
 pub use options::GlobalOptions;
 pub use repair::{RepairCommand, RepairTarget};
 pub use root::{

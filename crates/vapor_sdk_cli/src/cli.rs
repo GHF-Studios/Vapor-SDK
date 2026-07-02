@@ -81,6 +81,8 @@ enum Command {
     Version,
     /// Summarize SDK health and authoring environment state.
     Status,
+    /// Show app-root shell activation and PATH setup.
+    Env,
     /// Package or publish the first-party Steam-distributed Vapor root.
     Root {
         #[command(subcommand)]
@@ -174,6 +176,7 @@ impl Command {
         match self {
             Self::Version => core::SdkCommand::Version,
             Self::Status => core::SdkCommand::Status,
+            Self::Env => core::SdkCommand::Environment(core::EnvironmentCommand::Status),
             Self::Root { command } => core::SdkCommand::Root(command.into_core()),
             Self::Steam { command } => core::SdkCommand::Steam(command.into_core()),
             Self::Check => core::SdkCommand::Workspace(core::WorkspaceCommand::Check),

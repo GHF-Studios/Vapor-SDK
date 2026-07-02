@@ -1,6 +1,7 @@
 //! Typed SDK command requests.
 
 use crate::content::{ContentSource, ContentType};
+use crate::environment::EnvironmentCommand;
 use crate::repair::RepairCommand;
 use crate::root::RootCommand;
 use crate::steam::SteamCommand;
@@ -82,6 +83,7 @@ pub enum LeafCommand {
 pub enum SdkCommand {
     Version,
     Status,
+    Environment(EnvironmentCommand),
     Root(RootCommand),
     Steam(SteamCommand),
     Workspace(WorkspaceCommand),

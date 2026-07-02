@@ -1,0 +1,104 @@
+use vapor_sdk_core::{
+    CommandSpec, GlobalOptions, ToolchainInstallReport, ToolchainInstallState, ToolchainStatus,
+};
+
+use super::common::{OutputResult, print_lines, print_spec};
+
+pub(super) fn print_status(
+    globals: &GlobalOptions,
+    spec: &CommandSpec,
+    status: ToolchainStatus,
+) -> OutputResult {
+    println!("{}", spec.summary);
+    println!("toolchain: {}", status.toolchain.identifier());
+    println!("host: {}", status.host_triple);
+    print_install_state(&status.install_state);
+    println!(
+        "home: {} ({})",
+        status.vapor_home.display(),
+        status.vapor_home_source.as_str()
+    );
+
+    if globals.verbose {
+        println!("toolchain_details:");
+        println!("  host_supported: {}", status.host_supported);
+        println!("  rust_toolchain_home: {}", status.toolchain_home.display());
+        println!("  rust_toolchain_root: {}", status.toolchain_root.display());
+        println!("  bootstrap_root: {}", status.bootstrap_root.display());
+        println!("  output_root: {}", status.output_root.display());
+        println!("  cargo: {}", status.cargo_path.display());
+        println!("  rustc: {}", status.rustc_path.display());
+        print_lines("  supported_hosts", status.supported_host_triples());
+        print_lines("  supported_targets", status.supported_target_triples());
+        println!("  required_components:");
+        for component in status.toolchain.required_components() {
+            println!("    {}", component.as_str());
+        }
+        println!("  channel: {}", status.toolchain.channel);
+        println!("  date: {}", status.toolchain.date);
+        println!(
+            "  {}: override with a portable/dev Vapor root",
+            vapor_sdk_core::VAPOR_HOME_ENV
+        );
+        print_spec(spec);
+    }
+
+    Ok(())
+}
+
+pub(super) fn print_install(
+    globals: &GlobalOptions,
+    spec: &CommandSpec,
+    report: ToolchainInstallReport,
+) -> OutputResult {
+    let plan = &report.plan;
+
+    println!("{}", spec.summary);
+    println!("toolchain: {}", plan.status.toolchain.identifier());
+    println!("host: {}", plan.status.host_triple);
+    println!("installed_root: {}", report.installed_root.display());
+    println!("archives: {}", plan.archives.len());
+
+    if globals.verbose {
+        println!("install_details:");
+        println!("  manifest: {}", plan.manifest_url);
+        println!("  manifest_date: {}", plan.manifest_date);
+        println!("  vapor_home: {}", plan.status.vapor_home.display());
+        println!(
+            "  rust_toolchain_home: {}",
+            plan.status.toolchain_home.display()
+        );
+        println!(
+            "  rust_toolchain_root: {}",
+            plan.status.toolchain_root.display()
+        );
+        println!("  bootstrap_root: {}", plan.status.bootstrap_root.display());
+        println!("  output_root: {}", plan.status.output_root.display());
+        println!("  download_root: {}", plan.download_root.display());
+        println!("  staging_root: {}", report.staging_root.display());
+        println!("  archive_details:");
+        for archive in &plan.archives {
+            println!("    {} {}", archive.component.as_str(), archive.target);
+            println!("      package: {}", archive.package);
+            println!("      url: {}", archive.url);
+            println!("      sha256: {}", archive.sha256);
+            println!("      download_path: {}", archive.download_path.display());
+        }
+        println!("  install_state: {}", plan.status.install_state.as_str());
+        print_lines("  supported_hosts", plan.status.supported_host_triples());
+        print_lines(
+            "  supported_targets",
+            plan.status.supported_target_triples(),
+        );
+        print_spec(spec);
+    }
+
+    Ok(())
+}
+
+fn print_install_state(state: &ToolchainInstallState) {
+    println!("install_state: {}", state.as_str());
+    if let ToolchainInstallState::Broken { reason } = state {
+        println!("install_problem: {reason}");
+    }
+}
