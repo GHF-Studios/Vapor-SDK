@@ -7,7 +7,7 @@ use dialoguer::Confirm;
 use owo_colors::{OwoColorize, Stream::Stdout};
 use vapor_sdk_core::{
     CommandSpec, GlobalOptions, LeafCommand, PackCommand, PackagepackCommand, RepairCommand,
-    SdkCommand, SourceAuthoringCommand, ToolchainCommand, WorkspaceCommand,
+    RootCommand, SdkCommand, SourceAuthoringCommand, ToolchainCommand, WorkspaceCommand,
 };
 
 #[derive(Debug)]
@@ -161,6 +161,12 @@ impl SafetyPolicy {
                 strict: false,
                 keep_unused_versions: false,
                 confirm: true,
+            },
+            SdkCommand::Root(RootCommand::Publish(request)) => Self {
+                force: false,
+                strict: false,
+                keep_unused_versions: false,
+                confirm: !request.plan,
             },
             SdkCommand::Packagepack(PackagepackCommand::Compose(_))
             | SdkCommand::Pack {

@@ -2,6 +2,8 @@
 
 mod content;
 mod repair;
+mod root;
+mod steam;
 mod template;
 mod toolchain;
 mod workspace;
@@ -19,6 +21,8 @@ pub enum StateSurface {
     AuthoredComposition,
     BuildArtifact,
     Publication,
+    RootRelease,
+    Steam,
 }
 
 /// Command contract used by placeholder UIs.
@@ -48,6 +52,8 @@ pub fn describe_command(command: &SdkCommand) -> CommandSpec {
             &[],
             &["display toolchain, template, and project state"],
         ),
+        SdkCommand::Root(command) => root::describe(command),
+        SdkCommand::Steam(command) => steam::describe(command),
         SdkCommand::Workspace(command) => workspace::describe(command),
         SdkCommand::Repair(command) => repair::describe(command),
         SdkCommand::Toolchain(command) => toolchain::describe(command),

@@ -24,6 +24,7 @@ pub struct WorkspaceDeployReport {
     pub source_executable: PathBuf,
     pub deployed_executable: PathBuf,
     pub alias_executable: PathBuf,
+    pub activation_script: PathBuf,
 }
 
 /// Current SDK-managed workspace structure state.

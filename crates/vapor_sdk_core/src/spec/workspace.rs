@@ -42,13 +42,13 @@ pub(super) fn describe(command: &WorkspaceCommand) -> CommandSpec {
         ),
         WorkspaceCommand::Deploy => spec(
             "sdk deploy",
-            "Build and promote the SDK CLI into the executable-root bin directory.",
+            "Build and promote the current first-party tool CLI into the executable-root bin directory.",
             StateSurface::BuildArtifact,
             &[
                 "Vapor toolchain is installed",
-                "current workspace contains vapor_sdk_cli",
+                "current workspace kind is sdk or launcher",
             ],
-            &["replace the deployed SDK CLI from the Vapor output root"],
+            &["replace the deployed tool CLI from the Vapor output root"],
         ),
     }
 }

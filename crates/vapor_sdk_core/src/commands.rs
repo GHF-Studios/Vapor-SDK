@@ -2,6 +2,8 @@
 
 use crate::content::{ContentSource, ContentType};
 use crate::repair::RepairCommand;
+use crate::root::RootCommand;
+use crate::steam::SteamCommand;
 use crate::template::TemplateCommand;
 use crate::toolchain::ToolchainCommand;
 use crate::workspace::WorkspaceCommand;
@@ -80,6 +82,8 @@ pub enum LeafCommand {
 pub enum SdkCommand {
     Version,
     Status,
+    Root(RootCommand),
+    Steam(SteamCommand),
     Workspace(WorkspaceCommand),
     Repair(RepairCommand),
     Toolchain(ToolchainCommand),

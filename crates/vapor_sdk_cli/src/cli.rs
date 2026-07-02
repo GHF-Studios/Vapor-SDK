@@ -5,6 +5,8 @@ mod leaf;
 mod pack;
 mod packagepack;
 mod repair;
+mod root;
+mod steam;
 mod template;
 mod toolchain;
 
@@ -13,7 +15,9 @@ use leaf::LeafCommand;
 use pack::PackCommand;
 use packagepack::PackagepackCommand;
 use repair::RepairCommand;
+use root::RootCommand;
 use std::path::PathBuf;
+use steam::SteamCommand;
 use template::TemplateCommand;
 use toolchain::ToolchainCommand;
 use vapor_sdk_core as core;
@@ -77,13 +81,23 @@ enum Command {
     Version,
     /// Summarize SDK health and authoring environment state.
     Status,
+    /// Package or publish the first-party Steam-distributed Vapor root.
+    Root {
+        #[command(subcommand)]
+        command: RootCommand,
+    },
+    /// Inspect or authenticate SteamCMD for Vapor release workflows.
+    Steam {
+        #[command(subcommand)]
+        command: SteamCommand,
+    },
     /// Run `cargo check` through the Vapor-managed Cargo binary.
     Check,
     /// Run `cargo fmt` through the Vapor-managed Cargo binary.
     Fmt,
     /// Run `cargo build --workspace` through the Vapor-managed Cargo binary.
     Build,
-    /// Build and promote the SDK CLI into the executable-root `bin` directory.
+    /// Build and promote the current first-party tool CLI into the executable-root `bin` directory.
     Deploy,
     /// Inspect or sync the current Vapor workspace.
     Workspace {
@@ -160,6 +174,8 @@ impl Command {
         match self {
             Self::Version => core::SdkCommand::Version,
             Self::Status => core::SdkCommand::Status,
+            Self::Root { command } => core::SdkCommand::Root(command.into_core()),
+            Self::Steam { command } => core::SdkCommand::Steam(command.into_core()),
             Self::Check => core::SdkCommand::Workspace(core::WorkspaceCommand::Check),
             Self::Fmt => core::SdkCommand::Workspace(core::WorkspaceCommand::Fmt),
             Self::Build => core::SdkCommand::Workspace(core::WorkspaceCommand::Build),
